@@ -1,0 +1,24 @@
+[versions]
+kotlin = "1.9.21"
+minecraft = "1.16.5"
+fabric-loom = "1.5-SNAPSHOT"
+fabric-loader = "0.15.3"
+fabric-api = "0.42.0+1.16"
+fabric-yarn = "1.16.5+build.10"
+fabric-kotlin = "1.10.16+kotlin.1.9.21"
+
+[libraries]
+minecraft = { group = "com.mojang", name = "minecraft", version.ref = "minecraft" }
+fabric-loader = { group = "net.fabricmc",  name = "fabric-loader", version.ref = "fabric-loader" }
+fabric-api = { group = "net.fabricmc.fabric-api",  name = "fabric-api", version.ref = "fabric-api" }
+fabric-kotlin = { group = "net.fabricmc", name = "fabric-language-kotlin", version.ref = "fabric-kotlin"}
+
+mod-modmenu = { group = "maven.modrinth", name = "modmenu", version = "1.16.23" }
+
+[bundles]
+mods-fabric = ["fabric-loader", "fabric-api", "fabric-kotlin"]
+mods-debug = ["mod-modmenu"]
+
+[plugins]
+fabric-loom = { id = "fabric-loom", version.ref = "fabric-loom" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version = "12.1.0"}

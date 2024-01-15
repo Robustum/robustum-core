@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "robustum_core",
+  "version": "${version}",
+  "name": "Robustum Core",
+  "description": "",
+  "authors": ["toliner", "Hiiragi283"],
+  "contact": {},
+  "license": "MPL-2.0",
+  "icon": "assets/robustum-core/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [],
+    "main": [
+      {
+        "value": "dev.robustum.core.RobustumCore",
+        "adapter": "kotlin"
+      }
+    ]
+  },
+  "mixins": [],
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "fabric": "*",
+    "minecraft": "1.16.5"
+  }
+}
