@@ -28,7 +28,7 @@ dependencies {
     minecraft(libs.minecraft)
     mappings("net.fabricmc:yarn:${libs.versions.fabric.yarn.get()}:v2")
     modImplementation(libs.bundles.mods.fabric)
-    modRuntimeOnly(libs.bundles.mods.debug)
+    modLocalRuntime(libs.bundles.mods.debug)
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 }
 
@@ -36,7 +36,6 @@ loom {
     mods {
         create("robustum_core") {
             sourceSet(sourceSets.main.get())
-            sourceSet(sourceSets.test.get())
         }
     }
 }
