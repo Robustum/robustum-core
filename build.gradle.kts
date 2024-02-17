@@ -10,7 +10,6 @@ plugins {
 group = "dev.robustum"
 version = "0.1.0"
 
-
 sourceSets {
     create("api")
     main {
@@ -47,8 +46,13 @@ dependencies {
 
 loom {
     mods {
-        create("robustum_core") {
+        /*create("robustum_core") {
             sourceSet(sourceSets.main.get())
+        }*/
+    }
+    runs {
+        getByName("client") {
+            programArg("--username=Developer")
         }
     }
 }
@@ -56,14 +60,14 @@ loom {
 kotlin {
     jvmToolchain(21)
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_1_8)
+        jvmTarget.set(JvmTarget.JVM_21)
     }
 }
 
 java {
     withSourcesJar()
     sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 ktlint {
