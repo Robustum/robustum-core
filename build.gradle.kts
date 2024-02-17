@@ -10,6 +10,19 @@ plugins {
 group = "dev.robustum"
 version = "0.1.0"
 
+
+sourceSets {
+    create("api")
+    main {
+        compileClasspath += getByName("api").output
+        runtimeClasspath += getByName("api").output
+    }
+}
+
+configurations {
+    getByName("apiCompileClasspath").extendsFrom(getByName("compileClasspath"))
+}
+
 repositories {
     mavenCentral()
     exclusiveContent {
@@ -78,6 +91,15 @@ tasks {
     jar {
         from("LICENSE") {
             rename { "${it}_${project.base.archivesName.get()}" }
+        }
+    }
+    register("apiJar", Jar::class.java) {
+        archiveClassifier = "api"
+        from(sourceSets.getByName("api").java) {
+            include("dev/robustum/core/api/**")
+        }
+        from(sourceSets.getByName("api").output) {
+            include("dev/robustum/core/api/**")
         }
     }
 }
