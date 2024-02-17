@@ -1,6 +1,6 @@
 package dev.robustum.core.mixin;
 
-import dev.robustum.core.api.tag.WrappedTagManager;
+import dev.robustum.core.api.tag.GlobalTagManager;
 import net.minecraft.tag.ServerTagManagerHolder;
 import net.minecraft.tag.TagManager;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,7 +17,7 @@ public class ServerTagManagerHolderMixin {
 
     @Inject(method = "getTagManager", at = @At("TAIL"), cancellable = true)
     private static void robustum$getTagManager(CallbackInfoReturnable<TagManager> cir) {
-        cir.setReturnValue(new WrappedTagManager(tagManager));
+        cir.setReturnValue(GlobalTagManager.createWrappedManager(tagManager));
     }
 
 }

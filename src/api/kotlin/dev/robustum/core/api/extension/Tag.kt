@@ -22,3 +22,10 @@ fun <T> buildTagMap(tags: Map<Identifier, Tag.Builder>, registryGetter: (Identif
     }
     return map
 }
+
+fun <T> Tag<T>.combine(other: Tag<T>?): Tag<T> = Tag.of(
+    buildSet {
+        addAll(this@combine.values())
+        addAll(other?.values() ?: listOf())
+    },
+)
