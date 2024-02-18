@@ -10,8 +10,6 @@ class RobustumCore : ModInitializer {
         const val MOD_NAME = "Robustum Core"
         private val logger = LogManager.getLogger(RobustumCore::class.java)
 
-        @JvmOverloads
-        @JvmStatic
         fun log(message: String, level: Level = Level.INFO) {
             logger.log(level, "[$MOD_NAME] $message")
         }

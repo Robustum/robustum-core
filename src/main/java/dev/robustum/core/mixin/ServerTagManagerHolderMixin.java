@@ -1,6 +1,6 @@
 package dev.robustum.core.mixin;
 
-import dev.robustum.core.api.tag.GlobalTagManager;
+import dev.robustum.core.tag.GlobalTagManager;
 import net.minecraft.tag.ServerTagManagerHolder;
 import net.minecraft.tag.TagManager;
 import org.spongepowered.asm.mixin.Mixin;

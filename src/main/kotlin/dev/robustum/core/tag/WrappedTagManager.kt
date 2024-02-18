@@ -1,6 +1,6 @@
-package dev.robustum.core.api.tag
+package dev.robustum.core.tag
 
-import dev.robustum.core.api.extension.combine
+import dev.robustum.core.extension.combine
 import net.minecraft.block.Block
 import net.minecraft.entity.EntityType
 import net.minecraft.fluid.Fluid

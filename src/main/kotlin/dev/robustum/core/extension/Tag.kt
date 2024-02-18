@@ -1,4 +1,4 @@
-package dev.robustum.core.api.extension
+package dev.robustum.core.extension
 
 import net.minecraft.tag.Tag
 import net.minecraft.util.Identifier

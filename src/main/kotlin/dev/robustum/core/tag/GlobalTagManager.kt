@@ -1,6 +1,6 @@
-package dev.robustum.core.api.tag
+package dev.robustum.core.tag
 
-import dev.robustum.core.api.extension.buildTagMap
+import dev.robustum.core.extension.buildTagMap
 import net.minecraft.tag.Tag
 import net.minecraft.tag.TagManager
 import net.minecraft.util.Identifier
@@ -12,19 +12,14 @@ object GlobalTagManager {
     private val fluids: MutableMap<Identifier, Tag.Builder> = hashMapOf()
     private val entityTypes: MutableMap<Identifier, Tag.Builder> = hashMapOf()
 
-    @JvmStatic
     fun getBlockBuilder(id: Identifier): Tag.Builder = blocks.computeIfAbsent(id) { Tag.Builder.create() }
 
-    @JvmStatic
     fun getItemBuilder(id: Identifier): Tag.Builder = items.computeIfAbsent(id) { Tag.Builder.create() }
 
-    @JvmStatic
     fun getFluidBuilder(id: Identifier): Tag.Builder = fluids.computeIfAbsent(id) { Tag.Builder.create() }
 
-    @JvmStatic
     fun getEntityTypeBuilder(id: Identifier): Tag.Builder = entityTypes.computeIfAbsent(id) { Tag.Builder.create() }
 
-    @JvmStatic
     fun createWrappedManager(manager: TagManager): TagManager = WrappedTagManager(
         manager,
         buildTagMap(blocks, Registry.BLOCK::get),
