@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 @Mixin(ShapedRecipe.class)
-public class ShapedRecipeMixin {
+public abstract class ShapedRecipeMixin {
     @Inject(method = "getItemStack", at = @At("HEAD"), cancellable = true)
     private static void robustum$getItemStack(JsonObject json, CallbackInfoReturnable<ItemStack> cir) {
         if (json.has("tag")) {
