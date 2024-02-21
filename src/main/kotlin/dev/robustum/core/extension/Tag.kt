@@ -1,8 +1,26 @@
 package dev.robustum.core.extension
 
-import net.minecraft.tag.Tag
+import net.fabricmc.fabric.mixin.tag.extension.AccessorFluidTags
+import net.minecraft.block.Block
+import net.minecraft.entity.EntityType
+import net.minecraft.fluid.Fluid
+import net.minecraft.item.Item
+import net.minecraft.tag.*
 import net.minecraft.util.Identifier
 import java.util.*
+
+inline fun <reified T> Tag<T>.id(): Identifier? = (this as? Tag.Identified<T>)?.id ?: getTagGroup<T>().getUncheckedTagId(this)
+
+inline fun <reified T> T.tags(): Collection<Identifier> = getTagGroup<T>().getTagsFor(this)
+
+@Suppress("UNCHECKED_CAST")
+inline fun <reified T> getTagGroup(): TagGroup<T> = when (T::class.java) {
+    Block::class.java -> BlockTags.getTagGroup()
+    EntityType::class.java -> EntityTypeTags.getTagGroup()
+    Fluid::class.java -> AccessorFluidTags.getRequiredTags().group
+    Item::class.java -> ItemTags.getTagGroup()
+    else -> TagGroup.createEmpty()
+} as TagGroup<T>
 
 fun <T> buildTagMap(tags: Map<Identifier, Tag.Builder>, registryGetter: (Identifier) -> T?): Map<Identifier, Tag<T>> {
     val map: MutableMap<Identifier, Tag<T>> = hashMapOf()
