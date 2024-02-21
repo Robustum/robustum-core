@@ -4,8 +4,14 @@
   "package": "dev.robustum.core.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "ServerTagManagerHolderMixin",
-    "ShapedRecipeMixin"
+    "AxeItemMixin",
+    "HoeItemMixin",
+    "MiningToolItemAccessor",
+    "PickaxeItemMixin",
+    "ShapedRecipeMixin",
+    "ShovelItemMixin",
+    "SwordItemMixin",
+    "TagGroupLoaderMixin"
   ],
   "client": [],
   "injectors": {
