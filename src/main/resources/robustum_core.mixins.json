@@ -1,0 +1,20 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.robustum.core.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "AxeItemMixin",
+    "HoeItemMixin",
+    "MiningToolItemAccessor",
+    "PickaxeItemMixin",
+    "ShapedRecipeMixin",
+    "ShovelItemMixin",
+    "SwordItemMixin",
+    "TagGroupLoaderMixin"
+  ],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
