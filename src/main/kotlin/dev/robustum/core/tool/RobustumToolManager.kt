@@ -7,12 +7,11 @@ import net.minecraft.block.Blocks
 import net.minecraft.block.Material
 import net.minecraft.item.Items
 import net.minecraft.item.ToolMaterial
-import java.util.*
 
 object RobustumToolManager {
     // Mining Level
-    private val blocks: MutableMap<RobustumTool, MutableMap<Block, Int>> = EnumMap(RobustumTool::class.java)
-    private val materials: MutableMap<RobustumTool, MutableMap<Material, Int>> = EnumMap(RobustumTool::class.java)
+    private val blocks: MutableMap<RobustumTool, MutableMap<Block, Int>> = hashMapOf()
+    private val materials: MutableMap<RobustumTool, MutableMap<Material, Int>> = hashMapOf()
 
     fun canMine(tool: RobustumTool, state: BlockState, toolMaterial: ToolMaterial): Boolean =
         getMiningLevel(tool, state) <= toolMaterial.miningLevel
@@ -56,18 +55,18 @@ object RobustumToolManager {
         setMiningLevel(RobustumTool.PICKAXE, Blocks.EMERALD_ORE, 2)
         setMiningLevel(RobustumTool.PICKAXE, Blocks.GOLD_BLOCK, 2)
         setMiningLevel(RobustumTool.PICKAXE, Blocks.GOLD_ORE, 2)
-        setMiningLevel(RobustumTool.PICKAXE, Blocks.NETHERITE_BLOCK, 3)
-        setMiningLevel(RobustumTool.PICKAXE, Blocks.OBSIDIAN, 3)
-        setMiningLevel(RobustumTool.PICKAXE, Blocks.REDSTONE_ORE, 2)
-        setMiningLevel(RobustumTool.PICKAXE, Blocks.RESPAWN_ANCHOR, 3)
         setMiningLevel(RobustumTool.PICKAXE, Blocks.IRON_BLOCK, 1)
         setMiningLevel(RobustumTool.PICKAXE, Blocks.IRON_ORE, 1)
         setMiningLevel(RobustumTool.PICKAXE, Blocks.LAPIS_BLOCK, 1)
         setMiningLevel(RobustumTool.PICKAXE, Blocks.LAPIS_ORE, 1)
-        setMiningLevel(RobustumTool.PICKAXE, Material.STONE)
+        setMiningLevel(RobustumTool.PICKAXE, Blocks.NETHER_GOLD_ORE)
+        setMiningLevel(RobustumTool.PICKAXE, Blocks.NETHERITE_BLOCK, 3)
+        setMiningLevel(RobustumTool.PICKAXE, Blocks.OBSIDIAN, 3)
+        setMiningLevel(RobustumTool.PICKAXE, Blocks.REDSTONE_ORE, 2)
+        setMiningLevel(RobustumTool.PICKAXE, Blocks.RESPAWN_ANCHOR, 3)
         setMiningLevel(RobustumTool.PICKAXE, Material.METAL)
         setMiningLevel(RobustumTool.PICKAXE, Material.REPAIR_STATION)
-        setMiningLevel(RobustumTool.PICKAXE, Blocks.NETHER_GOLD_ORE)
+        setMiningLevel(RobustumTool.PICKAXE, Material.STONE)
         // Shovel
         Items.WOODEN_SHOVEL.effectiveBlocks.forEach { block: Block ->
             setMiningLevel(RobustumTool.SHOVEL, block)

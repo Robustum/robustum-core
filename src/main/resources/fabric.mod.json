@@ -25,5 +25,6 @@
     "fabricloader": ">=0.15.0",
     "fabric": "*",
     "minecraft": "1.16.5"
-  }
+  },
+  "accessWidener": "robustum_core.accesswidener"
 }
