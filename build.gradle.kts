@@ -41,7 +41,7 @@ loom {
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(8)
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_1_8)
     }
@@ -49,7 +49,7 @@ kotlin {
 
 java {
     withSourcesJar()
-    sourceCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 

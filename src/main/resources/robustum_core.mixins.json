@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.robustum.core.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "ServerResourceManagerMixin",
+    "TagGroupLoaderMixin"
+  ],
+  "client": [
+    "ClientPlayNetworkHandlerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
