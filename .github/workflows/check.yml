@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   lint:
+    runs-on: ubuntu-latest
     permissions:
       pull-requests: write
       contents: read
@@ -30,7 +31,7 @@ jobs:
           ktlint_version: '1.0.0'
           reporter: ${{ (github.event_name == 'pull_request' && 'github-pr-review' ) || 'github-check' }}
 
-   build:
+  build:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
