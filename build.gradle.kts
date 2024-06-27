@@ -54,6 +54,7 @@ java {
 }
 
 ktlint {
+    version = libs.versions.ktlint
     reporters {
         reporter(ReporterType.HTML)
         reporter(ReporterType.SARIF)

@@ -23,12 +23,18 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+      - name: Get ktlint version
+        id: ktlint
+        run: |
+          # load versions.ktlint from gradle/libs.versions.toml
+          V=$(grep -i "ktlint = \"\(.*\)\"" gradle/libs.versions.toml | sed -e "s/ktlint = \"\(.*\)\"/\1/")
+          echo "version=$V" >> "$GITHUB_OUTPUT"
       - name: Lint Check
         uses: ScaCap/action-ktlint@master
         with:
           fail_on_error: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          ktlint_version: '1.0.0'
+          ktlint_version: ${{ steps.ktlint.outputs.version }}
           reporter: ${{ (github.event_name == 'pull_request' && 'github-pr-review' ) || 'github-check' }}
 
   build:
