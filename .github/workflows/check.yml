@@ -48,7 +48,9 @@ jobs:
           distribution: 'temurin'
       - name: Gradle Wrapper Validation
         uses: gradle/actions/wrapper-validation@v3
-      - name: ${{ matrix.task }} with Gradle
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
-        with:
-          arguments: ${{ inputs.gradle_args }}
+      - name: make gradle wrapper executable
+        run: chmod +x ./gradlew
+      - name: Run ${{ matrix.task }} task
+        run: ./gradlew ${{ matrix.task }} --stacktrace
