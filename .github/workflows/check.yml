@@ -26,8 +26,8 @@ jobs:
       - name: Lint Check
         uses: ScaCap/action-ktlint@master
         with:
+          fail_on_error: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          relative: true
           ktlint_version: '1.0.0'
           reporter: ${{ (github.event_name == 'pull_request' && 'github-pr-review' ) || 'github-check' }}
 
