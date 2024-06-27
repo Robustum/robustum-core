@@ -32,6 +32,7 @@ jobs:
           reporter: ${{ (github.event_name == 'pull_request' && 'github-pr-review' ) || 'github-check' }}
 
   build:
+    needs: lint
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
