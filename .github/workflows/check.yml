@@ -28,6 +28,7 @@ jobs:
         run: |
           # load versions.ktlint from gradle/libs.versions.toml
           V=$(grep -i "ktlint = \"\(.*\)\"" gradle/libs.versions.toml | sed -e "s/ktlint = \"\(.*\)\"/\1/")
+          echo "Detected version $V"
           echo "version=$V" >> "$GITHUB_OUTPUT"
       - name: Lint Check
         uses: ScaCap/action-ktlint@master
