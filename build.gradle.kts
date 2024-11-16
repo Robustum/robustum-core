@@ -33,6 +33,8 @@ dependencies {
 }
 
 loom {
+    accessWidenerPath = file("src/main/resources/robustum_core.accesswidener")
+
     mods {
         create("robustum_core") {
             sourceSet(sourceSets.main.get())
