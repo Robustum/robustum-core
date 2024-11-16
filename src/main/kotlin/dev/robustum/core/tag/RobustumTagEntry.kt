@@ -3,25 +3,23 @@ package dev.robustum.core.tag
 import com.mojang.datafixers.util.Either
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import dev.robustum.core.extensions.RobustumCodecs
-import dev.robustum.core.extensions.getSafeValue
 import net.minecraft.tag.Tag
 import net.minecraft.util.Identifier
 
-class RobustumTagEntry private constructor(private val id: Identifier, private val isTag: Boolean, private val required: Boolean) {
+class RobustumTagEntry private constructor(val id: Identifier, val isTag: Boolean, val required: Boolean) {
     companion object {
         @JvmStatic
         private val ENTRY_CODEC: Codec<RobustumTagEntry> = RecordCodecBuilder.create { instance ->
             instance
                 .group(
-                    RobustumCodecs.TAG_ID.fieldOf("id").forGetter(RobustumTagEntry::tagEntryId),
+                    RobustumTagCodecs.TAG_ID.fieldOf("id").forGetter(RobustumTagEntry::tagEntryId),
                     Codec.BOOL.optionalFieldOf("required", true).forGetter(RobustumTagEntry::required),
                 ).apply(instance, ::RobustumTagEntry)
         }
 
         @JvmField
-        val CODEC: Codec<RobustumTagEntry> = Codec.either(RobustumCodecs.TAG_ID, ENTRY_CODEC).xmap(
-            { either: Either<RobustumCodecs.TagEntryId, RobustumTagEntry> ->
+        val CODEC: Codec<RobustumTagEntry> = Codec.either(RobustumTagCodecs.TAG_ID, ENTRY_CODEC).xmap(
+            { either: Either<RobustumTagCodecs.TagEntryId, RobustumTagEntry> ->
                 either.map({
                     RobustumTagEntry(
                         it,
@@ -48,13 +46,13 @@ class RobustumTagEntry private constructor(private val id: Identifier, private v
         fun createTag(id: Identifier, required: Boolean = true): RobustumTagEntry = RobustumTagEntry(id, true, required)
     }
 
-    constructor(tagId: RobustumCodecs.TagEntryId, required: Boolean) : this(tagId.id, tagId.isTag, required)
+    constructor(tagId: RobustumTagCodecs.TagEntryId, required: Boolean) : this(tagId.id, tagId.isTag, required)
 
-    private val tagEntryId = RobustumCodecs.TagEntryId(id, isTag)
+    private val tagEntryId = RobustumTagCodecs.TagEntryId(id, isTag)
 
     fun <T : Any> resolve(valueGetter: ValueGetter<T>, consumer: (T) -> Unit): Boolean {
         if (isTag) {
-            valueGetter.tag(id)?.getSafeValue()?.forEach(consumer) ?: return !required
+            valueGetter.tag(id)?.values()?.forEach(consumer) ?: return !required
         } else {
             valueGetter.direct(id)?.let(consumer) ?: return !required
         }

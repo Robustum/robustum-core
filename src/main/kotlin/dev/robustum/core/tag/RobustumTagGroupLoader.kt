@@ -27,10 +27,7 @@ class RobustumTagGroupLoader<T : Any>(private val registry: Registry<T>, private
     private fun loadTags(resourceManager: ResourceManager): Map<Identifier, MutableList<TrackedEntry>> =
         buildMap<Identifier, MutableList<TrackedEntry>> {
             resourceManager.findResources(dataType) { it.endsWith(".json") }.forEach { resourceId: Identifier ->
-                val fixedId: Identifier = resourceId
-                    .removePrefix("$dataType/")
-                    .removeSuffix(".json")
-                // .let(RobustumTagFormatRegistry::format)
+                val fixedId: Identifier = resourceId.removePrefix("$dataType/").removeSuffix(".json")
                 resourceManager.getAllResources(resourceId).forEach { resource: Resource ->
                     runCatching {
                         val json: JsonElement = resource.use { resourceIn: Resource ->
@@ -58,7 +55,7 @@ class RobustumTagGroupLoader<T : Any>(private val registry: Registry<T>, private
                     },
                 )
             }
-        }.onEach { logger.info("Tag - ${it.key}") }
+        }
 
     private fun buildGroup(rawMap: Map<Identifier, MutableList<TrackedEntry>>): TagGroup<T> = TagGroup.create(
         buildMap {
