@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Either
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import dev.robustum.core.extensions.RobustumCodecs
+import dev.robustum.core.extensions.getSafeValue
 import net.minecraft.tag.Tag
 import net.minecraft.util.Identifier
 
@@ -53,7 +54,7 @@ class RobustumTagEntry private constructor(private val id: Identifier, private v
 
     fun <T : Any> resolve(valueGetter: ValueGetter<T>, consumer: (T) -> Unit): Boolean {
         if (isTag) {
-            valueGetter.tag(id)?.values()?.forEach(consumer) ?: return !required
+            valueGetter.tag(id)?.getSafeValue()?.forEach(consumer) ?: return !required
         } else {
             valueGetter.direct(id)?.let(consumer) ?: return !required
         }

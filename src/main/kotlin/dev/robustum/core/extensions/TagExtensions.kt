@@ -7,3 +7,5 @@ import net.minecraft.util.Identifier
 
 val <T : Any> Tag<T>.idOrNull: Identifier?
     get() = (this as? Tag.Identified<T>)?.id
+
+fun <T : Any> Tag<T>.getSafeValue(): List<T> = runCatching { values() }.getOrDefault(listOf())
