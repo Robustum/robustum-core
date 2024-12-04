@@ -2,10 +2,12 @@ package dev.robustum.core.recipe
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
+import dev.robustum.core.extensions.getEntryOrThrow
+import dev.robustum.core.registry.RegistryEntryList
+import dev.robustum.core.registry.RegistryEntryListCodec
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants
 import net.minecraft.fluid.Fluid
 import net.minecraft.fluid.Fluids
-import net.minecraft.tag.ServerTagManagerHolder
 import net.minecraft.tag.Tag
 import net.minecraft.util.registry.Registry
 import java.util.function.BiPredicate
@@ -20,8 +22,7 @@ class FluidIngredient private constructor(val entryList: RegistryEntryList<Fluid
         val CODEC: Codec<FluidIngredient> = RecordCodecBuilder.create { instance ->
             instance
                 .group(
-                    RegistryEntryList
-                        .codec(Registry.FLUID, ServerTagManagerHolder.getTagManager()::getFluids)
+                    RegistryEntryListCodec.FLUID
                         .fieldOf("fluids")
                         .forGetter(FluidIngredient::entryList),
                     Codec.LONG.optionalFieldOf("amount", FluidConstants.BUCKET).forGetter(FluidIngredient::amount),
@@ -31,9 +32,10 @@ class FluidIngredient private constructor(val entryList: RegistryEntryList<Fluid
 
     constructor(tag: Tag<Fluid>, amount: Long = FluidConstants.BUCKET) : this(RegistryEntryList.tag(tag), amount)
 
-    constructor(fluid: Fluid, amount: Long = FluidConstants.BUCKET) : this(RegistryEntryList.of(fluid), amount)
-
-    constructor(fluids: List<Fluid>, amount: Long = FluidConstants.BUCKET) : this(RegistryEntryList.of(fluids), amount)
+    constructor(fluid: Fluid, amount: Long = FluidConstants.BUCKET) : this(
+        RegistryEntryList.of(fluid, Registry.FLUID::getEntryOrThrow),
+        amount,
+    )
 
     val isEmpty: Boolean
         get() = entryList.isEmpty || amount <= 0

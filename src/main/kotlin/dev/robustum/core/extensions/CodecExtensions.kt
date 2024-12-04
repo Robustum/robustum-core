@@ -2,6 +2,7 @@ package dev.robustum.core.extensions
 
 import com.mojang.datafixers.util.Pair
 import com.mojang.serialization.*
+import net.minecraft.util.collection.DefaultedList
 import java.util.*
 import java.util.function.Function
 import java.util.stream.Stream
@@ -10,7 +11,7 @@ import java.util.stream.Stream
 
 fun <A : Any> Codec<A>.validate(validator: (A) -> DataResult<A>): Codec<A> = flatXmap(validator, validator)
 
-fun <A : Any> lazeCodec(getter: () -> Codec<A>): Codec<A> = object : Codec<A> {
+fun <A : Any> lazyCodec(getter: () -> Codec<A>): Codec<A> = object : Codec<A> {
     override fun <T : Any> encode(input: A, ops: DynamicOps<T>, prefix: T): DataResult<T> = getter().encode(input, ops, prefix)
 
     override fun <T : Any> decode(ops: DynamicOps<T>, input: T): DataResult<Pair<A, T>> = getter().decode(ops, input)
@@ -111,6 +112,9 @@ fun <A : Any> Codec<A>.optionalOf(): Codec<Optional<A>> = object : Codec<Optiona
     }
 }
 
+inline fun <reified A : Any> Codec<List<A>>.defaultedListOf(defaultValue: A): Codec<DefaultedList<A>> =
+    xmap({ DefaultedList.copyOf(defaultValue, *it.toTypedArray()) }, Function.identity())
+
 //    DataResult    //
 
 val <R : Any> DataResult<R>.succeeded: Boolean
@@ -119,6 +123,6 @@ val <R : Any> DataResult<R>.succeeded: Boolean
 val <R : Any> DataResult<R>.errored: Boolean
     get() = error().isPresent
 
-fun <R : Any> DataResult<R>.isSucceeded(action: (R) -> Unit): DataResult<R> = apply { result().ifPresent(action) }
+fun <R : Any> DataResult<R>.ifSucceeded(action: (R) -> Unit): DataResult<R> = apply { result().ifPresent(action) }
 
-fun <R : Any> DataResult<R>.isErrored(action: (DataResult.PartialResult<R>) -> Unit): DataResult<R> = apply { error().ifPresent(action) }
+fun <R : Any> DataResult<R>.ifErrored(action: (DataResult.PartialResult<R>) -> Unit): DataResult<R> = apply { error().ifPresent(action) }
