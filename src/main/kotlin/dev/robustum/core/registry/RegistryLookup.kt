@@ -22,6 +22,22 @@ interface RegistryLookup<T : Any> {
     fun getId(tag: Tag<T>): DataResult<RobustumCodecs.TagEntryId>
 
     companion object {
+        @JvmField
+        val BLOCK: RegistryLookup<Block> =
+            of(Registry.BLOCK, ServerTagManagerHolder.getTagManager()::getBlocks)
+
+        @JvmField
+        val FLUID: RegistryLookup<Fluid> =
+            of(Registry.FLUID, ServerTagManagerHolder.getTagManager()::getFluids)
+
+        @JvmField
+        val ENTITY_TYPE: RegistryLookup<EntityType<*>> =
+            of(Registry.ENTITY_TYPE, ServerTagManagerHolder.getTagManager()::getEntityTypes)
+
+        @JvmField
+        val ITEM: RegistryLookup<Item> =
+            of(Registry.ITEM, ServerTagManagerHolder.getTagManager()::getItems)
+
         @JvmStatic
         fun <T : Any> of(registry: Registry<T>, groupGetter: () -> TagGroup<T>): RegistryLookup<T> = object : RegistryLookup<T> {
             override fun getEntry(id: Identifier): DataResult<RegistryEntry<T>> = registry
@@ -48,21 +64,5 @@ interface RegistryLookup<T : Any> {
                 ?.let(DataResult<Identifier>::success)
                 ?: DataResult.error("Unknown tag: $tag")
         }
-
-        @JvmField
-        val BLOCK: RegistryLookup<Block> =
-            of(Registry.BLOCK, ServerTagManagerHolder.getTagManager()::getBlocks)
-
-        @JvmField
-        val FLUID: RegistryLookup<Fluid> =
-            of(Registry.FLUID, ServerTagManagerHolder.getTagManager()::getFluids)
-
-        @JvmField
-        val ENTITY_TYPE: RegistryLookup<EntityType<*>> =
-            of(Registry.ENTITY_TYPE, ServerTagManagerHolder.getTagManager()::getEntityTypes)
-
-        @JvmField
-        val ITEM: RegistryLookup<Item> =
-            of(Registry.ITEM, ServerTagManagerHolder.getTagManager()::getItems)
     }
 }
