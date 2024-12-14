@@ -38,7 +38,7 @@ public abstract class TagGroupLoaderMixin<T> {
     }
 
     @Inject(method = "method_18243", at = @At("RETURN"))
-    private void robustum_Core$method_18243(ResourceManager resourceManager, CallbackInfoReturnable<Map<Identifier, Tag.Builder>> cir) {
+    private void robustum$method_18243(ResourceManager resourceManager, CallbackInfoReturnable<Map<Identifier, Tag.Builder>> cir) {
         Registry<?> registry = findRegistry();
         if (registry == null) return;
         RobustumTagEvents.REGISTER.invoker().onRegister(new RobustumTagEvents.Helper(registry, (@NotNull Identifier tagId, Tag.@NotNull Entry entry) -> cir.getReturnValue().computeIfAbsent(tagId, k -> Tag.Builder.create()).add(entry, RobustumCore.MOD_NAME)));
