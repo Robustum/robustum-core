@@ -9,8 +9,14 @@ import java.util.stream.Stream
 
 //    Codec    //
 
+/**
+ * [validator]で[Codec]を検証する
+ */
 fun <A : Any> Codec<A>.validate(validator: (A) -> DataResult<A>): Codec<A> = flatXmap(validator, validator)
 
+/**
+ * [getter]で[Codec]を遅延評価する
+ */
 fun <A : Any> lazyCodec(getter: () -> Codec<A>): Codec<A> = object : Codec<A> {
     override fun <T : Any> encode(input: A, ops: DynamicOps<T>, prefix: T): DataResult<T> = getter().encode(input, ops, prefix)
 
@@ -76,7 +82,7 @@ private class KeyDispatchCodec<K : Any, V : Any>(
     override fun <T : Any> encode(input: V, ops: DynamicOps<T>, prefix: RecordBuilder<T>): RecordBuilder<T> {
         val encodeResult: DataResult<out MapEncoder<V>> = encoder(input)
         val builder: RecordBuilder<T> = prefix.withErrorsFrom(encodeResult)
-        if (encodeResult.errored) {
+        if (encodeResult.isErrored) {
             return builder
         }
         val elementEncoder: MapEncoder<V> = encodeResult.result().get()
@@ -112,17 +118,32 @@ fun <A : Any> Codec<A>.optionalOf(): Codec<Optional<A>> = object : Codec<Optiona
     }
 }
 
+/**
+ * [defaultValue]を初期値にもつ[DefaultedList]の[Codec]に変換する
+ */
 inline fun <reified A : Any> Codec<List<A>>.defaultedListOf(defaultValue: A): Codec<DefaultedList<A>> =
     xmap({ DefaultedList.copyOf(defaultValue, *it.toTypedArray()) }, Function.identity())
 
 //    DataResult    //
 
-val <R : Any> DataResult<R>.succeeded: Boolean
+/**
+ * [DataResult]が成功しているかどうかを返す
+ */
+val <R : Any> DataResult<R>.isSucceeded: Boolean
     get() = result().isPresent
 
-val <R : Any> DataResult<R>.errored: Boolean
+/**
+ * [DataResult]が失敗しているかどうかを返す
+ */
+val <R : Any> DataResult<R>.isErrored: Boolean
     get() = error().isPresent
 
+/**
+ * [DataResult]が成功しているときのみ[action]を実行する
+ */
 fun <R : Any> DataResult<R>.ifSucceeded(action: (R) -> Unit): DataResult<R> = apply { result().ifPresent(action) }
 
+/**
+ * [DataResult]が失敗しているときのみ[action]を実行する
+ */
 fun <R : Any> DataResult<R>.ifErrored(action: (DataResult.PartialResult<R>) -> Unit): DataResult<R> = apply { error().ifPresent(action) }
