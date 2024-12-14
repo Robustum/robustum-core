@@ -13,11 +13,13 @@ import net.minecraft.tag.Tag
 import net.minecraft.util.Identifier
 import net.minecraft.util.StringIdentifiable
 import net.minecraft.util.registry.Registry
-import java.util.Optional
+import java.util.*
 
 object RobustumCodecs {
     //    Block    //
-
+    /**
+     * [Blocks.AIR]を受け付けない[Block]の[Codec]です。
+     */
     @JvmField
     val BLOCK: Codec<Block> = lazyCodec { Registry.BLOCK }.validate { block: Block ->
         when (block) {
@@ -27,6 +29,9 @@ object RobustumCodecs {
     }
 
     //    ItemStack    //
+    /**
+     * [Items.AIR]を受け付けない[Item]の[Codec]です。
+     */
     @JvmField
     val ITEM: Codec<Item> = lazyCodec { Registry.ITEM }.validate { item: Item ->
         when (item) {
@@ -47,6 +52,9 @@ object RobustumCodecs {
             }
     }
 
+    /**
+     * [ItemStack.isEmpty]を返す[ItemStack]も受け付ける[ItemStack]の[Codec]です。
+     */
     @JvmField
     val ITEM_STACK: Codec<ItemStack> = RAW_STACK.optionalOf().xmap(
         { it.orElse(ItemStack.EMPTY) },
@@ -54,7 +62,9 @@ object RobustumCodecs {
     )
 
     //    Tag    //
-
+    /**
+     * タグのIDを#で前置する[TagEntryId]の[Codec]です。
+     */
     @JvmField
     val TAG_ID: Codec<TagEntryId> = Codec.STRING.xmap({
         when (it.startsWith("#")) {
@@ -63,15 +73,33 @@ object RobustumCodecs {
         }
     }, TagEntryId::asString)
 
+    /**
+     * レジストリとタグのIDを共通化して扱うためのデータクラスです
+     */
     data class TagEntryId(val id: Identifier, val isTag: Boolean) : StringIdentifiable {
         companion object {
+            /**
+             * [entry]から[RobustumCodecs.TagEntryId]を返します。
+             * @param T 値のクラス
+             * @param transform [entry]を[Identifier]に変換するブロック
+             * @return [RobustumCodecs.TagEntryId.isTag]がfalseとなる[RobustumCodecs.TagEntryId]
+             */
             @JvmStatic
             fun <T : Any> of(entry: T, transform: (T) -> Identifier): TagEntryId = TagEntryId(transform(entry), false)
 
+            /**
+             * [tag]から[RobustumCodecs.TagEntryId]を返します。
+             * @param T 値のクラス
+             * @param transform [tag]を[Identifier]に変換するブロック
+             * @return [RobustumCodecs.TagEntryId.isTag]がtrueとなる[RobustumCodecs.TagEntryId]
+             */
             @JvmStatic
-            fun <T : Any> tag(tag: Tag<T>, transform: (Tag<T>) -> Identifier): TagEntryId = TagEntryId(transform(tag), true)
+            fun <T : Any> ofTag(tag: Tag<T>, transform: (Tag<T>) -> Identifier): TagEntryId = TagEntryId(transform(tag), true)
         }
 
+        /**
+         * [RobustumCodecs.TagEntryId.isTag]がtrueの場合は#で[RobustumCodecs.TagEntryId.id]を前置し，それ以外の場合はそのまま返します。
+         */
         override fun asString(): String = when (isTag) {
             true -> "#$id"
             false -> id.toString()

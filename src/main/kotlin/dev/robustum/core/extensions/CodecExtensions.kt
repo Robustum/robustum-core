@@ -10,12 +10,18 @@ import java.util.stream.Stream
 //    Codec    //
 
 /**
- * [validator]で[Codec]を検証する
+ * 指定された[validator]で検証した[Codec]を返します。
+ * @param A 値のクラス
+ * @param validator 値を[DataResult]で評価する。
+ * @return [validator]で評価された[Codec]
  */
 fun <A : Any> Codec<A>.validate(validator: (A) -> DataResult<A>): Codec<A> = flatXmap(validator, validator)
 
 /**
- * [getter]で[Codec]を遅延評価する
+ * 指定された[getter]で遅延評価された[Codec]を返します。
+ * @param A 値のクラス
+ * @param getter 遅延評価された元の[Codec]
+ * @return [getter]で遅延評価された[Codec]
  */
 fun <A : Any> lazyCodec(getter: () -> Codec<A>): Codec<A> = object : Codec<A> {
     override fun <T : Any> encode(input: A, ops: DynamicOps<T>, prefix: T): DataResult<T> = getter().encode(input, ops, prefix)
@@ -83,6 +89,7 @@ private class KeyDispatchCodec<K : Any, V : Any>(
         val encodeResult: DataResult<out MapEncoder<V>> = encoder(input)
         val builder: RecordBuilder<T> = prefix.withErrorsFrom(encodeResult)
         if (encodeResult.isErrored) {
+            Result
             return builder
         }
         val elementEncoder: MapEncoder<V> = encodeResult.result().get()
@@ -119,7 +126,10 @@ fun <A : Any> Codec<A>.optionalOf(): Codec<Optional<A>> = object : Codec<Optiona
 }
 
 /**
- * [defaultValue]を初期値にもつ[DefaultedList]の[Codec]に変換する
+ * 指定された[defaultValue]を初期値に持つ[DefaultedList]を[Codec]に変換します。
+ * @param A 値のクラス
+ * @param defaultValue [DefaultedList]の初期値
+ * @return [DefaultedList]の[Codec]
  */
 inline fun <reified A : Any> Codec<List<A>>.defaultedListOf(defaultValue: A): Codec<DefaultedList<A>> =
     xmap({ DefaultedList.copyOf(defaultValue, *it.toTypedArray()) }, Function.identity())
@@ -127,23 +137,25 @@ inline fun <reified A : Any> Codec<List<A>>.defaultedListOf(defaultValue: A): Co
 //    DataResult    //
 
 /**
- * [DataResult]が成功しているかどうかを返す
+ * 存在する値がある場合はtrueを返し、それ以外の場合はfalseを返します。
  */
 val <R : Any> DataResult<R>.isSucceeded: Boolean
     get() = result().isPresent
 
 /**
- * [DataResult]が失敗しているかどうかを返す
+ * 存在する値がない場合はtrueを返し、それ以外の場合はfalseを返します。
  */
 val <R : Any> DataResult<R>.isErrored: Boolean
     get() = error().isPresent
 
 /**
- * [DataResult]が成功しているときのみ[action]を実行する
+ * [DataResult]が値を保持している場合は指定された[action]をその値で呼び出し、それ以外の場合は何も行いません。
+ * @param action 値が存在する場合に実行されるブロック
  */
-fun <R : Any> DataResult<R>.ifSucceeded(action: (R) -> Unit): DataResult<R> = apply { result().ifPresent(action) }
+fun <R : Any> DataResult<R>.onSucceeded(action: (R) -> Unit): DataResult<R> = apply { result().ifPresent(action) }
 
 /**
- * [DataResult]が失敗しているときのみ[action]を実行する
+ * [DataResult]が値を保持していない場合は指定された[action]をその値で呼び出し、それ以外の場合は何も行いません。
+ * @param action 値が存在しない場合に実行されるブロック
  */
-fun <R : Any> DataResult<R>.ifErrored(action: (DataResult.PartialResult<R>) -> Unit): DataResult<R> = apply { error().ifPresent(action) }
+fun <R : Any> DataResult<R>.onErrored(action: (DataResult.PartialResult<R>) -> Unit): DataResult<R> = apply { error().ifPresent(action) }

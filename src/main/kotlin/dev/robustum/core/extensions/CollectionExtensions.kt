@@ -5,13 +5,20 @@ import net.minecraft.util.collection.DefaultedList
 //    DefaultedList    //
 
 /**
- * [Iterable]を，[defaultValue]を初期値とした[DefaultedList]に変換する
+ * [Iterable]を[DefaultedList]に変換します。
+ * @param T 値のクラス
+ * @param defaultValue [DefaultedList]の初期値
+ * @return [defaultValue]を初期値に持つ[DefaultedList]
  */
 inline fun <reified T : Any> Iterable<T>.toDefaultedList(defaultValue: T): DefaultedList<T> =
     DefaultedList<T>.copyOf(defaultValue, *this.toList().toTypedArray())
 
 /**
- * [Map]を，[defaultValue]を初期値とした[DefaultedList]に[transform]で変換する
+ * [Map]を[DefaultedList]で変換する
+ * @param T 値のクラス
+ * @param defaultValue [DefaultedList]の初期値
+ * @param transform [Map.Entry]を[T]に変換するブロック
+ * @return [defaultValue]を初期値に持つ[DefaultedList]
  */
 inline fun <reified K : Any, reified V : Any, reified T : Any> Map<K, V>.toDefaultedList(
     defaultValue: T,

@@ -3,13 +3,13 @@
   "package": "dev.robustum.core.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ServerTagManagerHolderMixin",
-    "TagGroupLoaderMixin"
+    "tag.ServerTagManagerHolderMixin",
+    "tag.TagGroupLoaderMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "client": [
-    "ClientPlayNetworkHandlerMixin"
+    "tag.ClientPlayNetworkHandlerMixin"
   ]
 }

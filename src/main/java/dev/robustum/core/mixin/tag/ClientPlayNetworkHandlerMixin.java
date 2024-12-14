@@ -1,4 +1,4 @@
-package dev.robustum.core.mixin;
+package dev.robustum.core.mixin.tag;
 
 import dev.robustum.core.tag.RobustumTagEvents;
 import net.fabricmc.api.EnvType;
