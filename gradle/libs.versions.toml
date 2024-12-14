@@ -7,18 +7,25 @@ fabric-loader = "0.16.9"
 fabric-api = "0.42.0+1.16"
 fabric-yarn = "1.16.5+build.10"
 fabric-kotlin = "1.12.3+kotlin.2.0.21"
+asm = "9.1"
 
 [libraries]
 minecraft = { group = "com.mojang", name = "minecraft", version.ref = "minecraft" }
 fabric-loader = { group = "net.fabricmc",  name = "fabric-loader", version.ref = "fabric-loader" }
 fabric-api = { group = "net.fabricmc.fabric-api",  name = "fabric-api", version.ref = "fabric-api" }
 fabric-kotlin = { group = "net.fabricmc", name = "fabric-language-kotlin", version.ref = "fabric-kotlin"}
+asm-tree = { group = "org.ow2.asm", name = "asm-tree", version.ref = "asm" }
+asm-commons = { group = "org.ow2.asm", name = "asm-commons", version.ref = "asm" }
+asm-util = { group = "org.ow2.asm", name = "asm-util", version.ref = "asm" }
+# test libraries
+fabric-loader-junit = { group = "net.fabricmc", name = "fabric-loader-junit", version.ref = "fabric-loader" }
 
 mod-modmenu = { group = "maven.modrinth", name = "modmenu", version = "1.16.23" }
 
 [bundles]
 mods-fabric = ["fabric-loader", "fabric-api", "fabric-kotlin"]
 mods-debug = ["mod-modmenu"]
+asm = [ "asm-tree", "asm-commons", "asm-util" ]
 
 [plugins]
 fabric-loom = { id = "fabric-loom", version.ref = "fabric-loom" }

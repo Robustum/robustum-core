@@ -24,12 +24,18 @@ repositories {
     }
 }
 
+val testAgent = configurations.create("testAgent") {
+    isCanBeConsumed = false
+}
+
 dependencies {
     minecraft(libs.minecraft)
     mappings("net.fabricmc:yarn:${libs.versions.fabric.yarn.get()}:v2")
     modImplementation(libs.bundles.mods.fabric)
     modLocalRuntime(libs.bundles.mods.debug)
     testImplementation("org.jetbrains.kotlin:kotlin-test")
+    testImplementation(libs.fabric.loader.junit)
+    testAgent(project(path = ":test-agent", configuration = "agentJar"))
 }
 
 loom {
@@ -70,6 +76,17 @@ ktlint {
 tasks {
     test {
         useJUnitPlatform()
+        val runDir = file("build/test_run")
+        workingDir = runDir
+
+        // Workaround https://github.com/FabricMC/fabric-loader/issues/817
+        // Original: https://github.com/embeddedt/ModernFix/commit/03b23957827c42d5df5a11f3d07f807c5343e87e
+        jvmArgs("-javaagent:${testAgent.singleFile.absolutePath}")
+        dependsOn(testAgent)
+
+        doFirst {
+            runDir.mkdir()
+        }
     }
     processResources {
         inputs.property("version", project.version)
