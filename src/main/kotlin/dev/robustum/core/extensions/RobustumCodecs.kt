@@ -1,19 +1,25 @@
 package dev.robustum.core.extensions
 
+import com.mojang.datafixers.util.Either
 import com.mojang.serialization.Codec
 import com.mojang.serialization.DataResult
 import com.mojang.serialization.codecs.RecordCodecBuilder
+import dev.robustum.core.mixin.recipe.IngredientAccessor
+import dev.robustum.core.registry.RegistryEntryList
+import dev.robustum.core.registry.RegistryEntryListCodec
 import net.minecraft.block.Block
 import net.minecraft.block.Blocks
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 import net.minecraft.nbt.NbtCompound
+import net.minecraft.recipe.Ingredient
 import net.minecraft.tag.Tag
 import net.minecraft.util.Identifier
 import net.minecraft.util.StringIdentifiable
 import net.minecraft.util.registry.Registry
 import java.util.*
+import kotlin.jvm.optionals.getOrNull
 
 object RobustumCodecs {
     //    Block    //
@@ -72,6 +78,68 @@ object RobustumCodecs {
             false -> TagEntryId(Identifier(it), false)
         }
     }, TagEntryId::asString)
+
+    //    Ingredient    //
+    /**
+     * よりシンプルな記法で書ける[Ingredient]の[Codec]です。
+     * ```
+     * "minecraft:dirt" -> Ingredient.ofItems(Items.DIRT)
+     * ["minecraft:dirt", "minecraft:stone"] -> Ingredient.ofItems(Items.DIRT, Items.STONE)
+     * "#minecraft:wool" -> Ingredient.fromTag(ItemTags.WOOL)
+     * ```
+     */
+    @Suppress("CAST_NEVER_SUCCEEDS")
+    @JvmField
+    val INGREDIENT: Codec<Ingredient> =
+        Codec.either(RegistryEntryListCodec.ITEM, RegistryEntryListCodec.ITEM.listOf()).comapFlatMap(
+            { either: Either<RegistryEntryList<Item>, List<RegistryEntryList<Item>>> ->
+                either.map(
+                    { entryList: RegistryEntryList<Item> ->
+                        DataResult.success(entryList.storage.map(Ingredient::fromTag, Ingredient::ofItems))
+                    },
+                    { entryLists: List<RegistryEntryList<Item>> ->
+                        when {
+                            entryLists.isEmpty() -> DataResult.success(Ingredient.EMPTY)
+                            entryLists.all { it.storage.right().isPresent } ->
+                                entryLists
+                                    .map(RegistryEntryList<Item>::storage)
+                                    .map { it.right() }
+                                    .mapNotNull(Optional<Item>::getOrNull)
+                                    .map(::ItemStack)
+                                    .stream()
+                                    .let(Ingredient::ofStacks)
+                                    .let(DataResult<Ingredient>::success)
+
+                            else -> DataResult.error("Any entries do not contain tag id!")
+                        }
+                    },
+                )
+            },
+            { ingredient: Ingredient ->
+                val empty: Either<RegistryEntryList<Item>, List<RegistryEntryList<Item>>> = Either.right(listOf())
+                if (ingredient.isEmpty) {
+                    empty
+                } else {
+                    val entries: Array<out Ingredient.Entry> = (ingredient as IngredientAccessor).entries
+                    entries
+                        .runCatching {
+                            val items: List<Item> = entries
+                                .flatMap(Ingredient.Entry::getStacks)
+                                .map(ItemStack::getItem)
+                                .distinct()
+                            when (items.size) {
+                                0 -> empty
+
+                                1 -> Either.left(RegistryEntryList.of(items[0], Registry.ITEM::getEntryOrThrow))
+
+                                else -> Either.right(
+                                    items.mapNotNull(Registry.ITEM::getEntry).map(RegistryEntryList.Companion::of),
+                                )
+                            }
+                        }.getOrDefault(empty)
+                }
+            },
+        )
 
     /**
      * レジストリとタグのIDを共通化して扱うためのデータクラスです

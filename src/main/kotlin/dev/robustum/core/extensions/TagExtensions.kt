@@ -10,6 +10,7 @@ import net.minecraft.fluid.FluidState
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.tag.Tag
+import net.minecraft.tag.TagGroup
 import net.minecraft.util.Identifier
 
 //    Tag    //
@@ -21,6 +22,12 @@ import net.minecraft.util.Identifier
  */
 val <T : Any> Tag<T>.idOrNull: Identifier?
     get() = (this as? Tag.Identified<T>)?.id
+
+/**
+ * 指定された[Tag]と[tagGroup]から[Identifier]を取得します。
+ * @return [idOrNull]がnullの場合，[TagGroup.getUncheckedTagId]より取得します。
+ */
+fun <T : Any> Tag<T>.getIdOrNull(tagGroup: TagGroup<T>): Identifier? = idOrNull ?: tagGroup.getUncheckedTagId(this)
 
 /**
  * 指定された[Tag]の要素を取得します。

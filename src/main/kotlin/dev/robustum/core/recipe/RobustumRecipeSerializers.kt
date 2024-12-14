@@ -23,12 +23,12 @@ object RobustumRecipeSerializers {
                         Codec.STRING
                             .optionalFieldOf("group", "")
                             .forGetter(ShapelessRecipe::getGroup),
-                        ItemIngredient.VANILLA_CODEC
+                        RobustumCodecs.INGREDIENT
                             .listOf()
-                            .fieldOf("ingredients")
+                            .fieldOf("inputs")
                             .forGetter(ShapelessRecipe::getIngredients),
                         RobustumCodecs.ITEM_STACK
-                            .fieldOf("result")
+                            .fieldOf("output")
                             .forGetter(ShapelessRecipe::getOutput),
                     ).apply(instance) { group: String, ingredients: List<Ingredient>, result: ItemStack ->
                         ShapelessRecipe(id, group, result, ingredients.toDefaultedList(Ingredient.EMPTY))
@@ -79,11 +79,11 @@ object RobustumRecipeSerializers {
                     Codec.STRING
                         .optionalFieldOf("group", "")
                         .forGetter(StonecuttingRecipe::getGroup),
-                    ItemIngredient.VANILLA_CODEC
-                        .fieldOf("ingredient")
+                    RobustumCodecs.INGREDIENT
+                        .fieldOf("input")
                         .forGetter { it.ingredients[0] },
                     RobustumCodecs.ITEM_STACK
-                        .fieldOf("result")
+                        .fieldOf("output")
                         .forGetter(StonecuttingRecipe::getOutput),
                 ).apply(instance) { group: String, ingredient: Ingredient, result: ItemStack ->
                     StonecuttingRecipe(id, group, ingredient, result)
@@ -101,11 +101,11 @@ object RobustumRecipeSerializers {
                     Codec.STRING
                         .optionalFieldOf("group", "")
                         .forGetter { it.group },
-                    ItemIngredient.VANILLA_CODEC
-                        .fieldOf("ingredient")
+                    RobustumCodecs.INGREDIENT
+                        .fieldOf("input")
                         .forGetter { it.ingredients[0] },
                     RobustumCodecs.ITEM_STACK
-                        .fieldOf("result")
+                        .fieldOf("output")
                         .forGetter { it.output },
                     Codec.FLOAT
                         .optionalFieldOf("exp", 0.0f)

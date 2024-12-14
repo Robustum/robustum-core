@@ -28,12 +28,6 @@ class ItemIngredient private constructor(val entryList: RegistryEntryList<Item>,
                     Codec.intRange(1, Int.MAX_VALUE).optionalFieldOf("count", 1).forGetter(ItemIngredient::count),
                 ).apply(instance, ::ItemIngredient)
         }
-
-        @JvmField
-        val VANILLA_CODEC: Codec<Ingredient> = CODEC.xmap(
-            { it.vanillaIngredient },
-            { ItemIngredient(it.matchingItemIds.map(Registry.ITEM::get)) },
-        )
     }
 
     constructor(tag: Tag<Item>, count: Int = 1) : this(RegistryEntryList.tag(tag), count)
@@ -42,8 +36,6 @@ class ItemIngredient private constructor(val entryList: RegistryEntryList<Item>,
         RegistryEntryList.of(item, Registry.ITEM::getEntryOrThrow),
         count,
     )
-
-    private constructor(items: List<Item>, count: Int = 1) : this(Tag.of(items.toSet()), count)
 
     val isEmpty: Boolean
         get() = entryList.isEmpty || count <= 0

@@ -3,6 +3,7 @@
   "package": "dev.robustum.core.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "recipe.IngredientAccessor",
     "tag.ServerTagManagerHolderMixin",
     "tag.TagGroupLoaderMixin"
   ],
