@@ -37,6 +37,7 @@ class TestRobustumRecipeSerializers {
                 ),
             ).onSucceeded {
                 it shouldBe {
+                    "type"("robustum_core:smelting")
                     "output" {
                         "id"("minecraft:diamond")
                     }

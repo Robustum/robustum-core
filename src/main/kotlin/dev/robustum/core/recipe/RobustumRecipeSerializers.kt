@@ -17,7 +17,7 @@ object RobustumRecipeSerializers {
             "shapeless",
             RecipeSerializer.SHAPELESS,
         ) { id: Identifier ->
-            RecordCodecBuilder.create<ShapelessRecipe> { instance ->
+            RecordCodecBuilder.mapCodec<ShapelessRecipe> { instance ->
                 instance
                     .group(
                         Codec.STRING
@@ -73,7 +73,7 @@ object RobustumRecipeSerializers {
         "stonecutting",
         RecipeSerializer.STONECUTTING,
     ) { id: Identifier ->
-        RecordCodecBuilder.create<StonecuttingRecipe> { instance ->
+        RecordCodecBuilder.mapCodec<StonecuttingRecipe> { instance ->
             instance
                 .group(
                     Codec.STRING
@@ -95,7 +95,7 @@ object RobustumRecipeSerializers {
     private fun <T : AbstractCookingRecipe> createCookingRecipe(
         factory: (Identifier, String, Ingredient, ItemStack, Float, Int) -> T,
     ): RecipeCodec<T> = RecipeCodec<T> { id: Identifier ->
-        RecordCodecBuilder.create<T> { instance ->
+        RecordCodecBuilder.mapCodec<T> { instance ->
             instance
                 .group(
                     Codec.STRING

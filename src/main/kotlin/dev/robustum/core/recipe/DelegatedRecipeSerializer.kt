@@ -1,24 +1,35 @@
 package dev.robustum.core.recipe
 
 import com.google.gson.JsonObject
+import com.mojang.serialization.Codec
 import com.mojang.serialization.DataResult
 import com.mojang.serialization.DynamicOps
 import com.mojang.serialization.JsonOps
+import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.network.PacketByteBuf
 import net.minecraft.recipe.Recipe
 import net.minecraft.recipe.RecipeSerializer
 import net.minecraft.util.Identifier
+import net.minecraft.util.registry.Registry
 
 class DelegatedRecipeSerializer<T : Recipe<*>>(private val delegated: RecipeSerializer<T>, private val recipeCodec: RecipeCodec<T>) :
     RecipeSerializer<T> {
-    override fun read(id: Identifier, json: JsonObject): T = recipeCodec
-        .createCodec(id)
+    private fun createCodec(id: Identifier): Codec<T> = RecordCodecBuilder.create { instance ->
+        instance
+            .group(
+                Registry.RECIPE_SERIALIZER.fieldOf("type").forGetter { this },
+                recipeCodec.createCodec(id).forGetter { it },
+            ).apply(instance) { type: RecipeSerializer<*>, recipe: T ->
+                recipe
+            }
+    }
+
+    override fun read(id: Identifier, json: JsonObject): T = createCodec(id)
         .parse(JsonOps.INSTANCE, json)
         .result()
         .orElseThrow()
 
-    fun <O : Any> write(dynamicOps: DynamicOps<O>, recipe: T): DataResult<O> =
-        recipeCodec.createCodec(recipe.id).encodeStart(dynamicOps, recipe)
+    fun <O : Any> write(dynamicOps: DynamicOps<O>, recipe: T): DataResult<O> = createCodec(recipe.id).encodeStart(dynamicOps, recipe)
 
     override fun read(id: Identifier, buf: PacketByteBuf): T = delegated.read(id, buf)
 
