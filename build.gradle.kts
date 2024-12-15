@@ -35,6 +35,7 @@ dependencies {
     modLocalRuntime(libs.bundles.mods.debug)
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation(libs.fabric.loader.junit)
+    testImplementation(libs.bundles.kotest)
     testAgent(project(path = ":test-agent", configuration = "agentJar"))
 }
 

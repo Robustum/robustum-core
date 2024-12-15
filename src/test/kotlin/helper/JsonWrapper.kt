@@ -2,10 +2,11 @@ package helper
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import io.kotest.matchers.shouldBe
 
 infix fun JsonElement.shouldBe(builder: GsonObjectWrapper.() -> Unit) {
     val expected = GsonObjectWrapper().apply(builder).jsonObject
-    assert(this == expected) { "Expected: $expected, but was: $this" }
+    this shouldBe expected
 }
 
 class GsonObjectWrapper(val jsonObject: JsonObject = JsonObject()) {
