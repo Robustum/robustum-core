@@ -1,4 +1,4 @@
-package dev.robustum.core.mixin.recipe;
+package dev.robustum.core.mixin.codec;
 
 import net.minecraft.recipe.Ingredient;
 import org.spongepowered.asm.mixin.Mixin;

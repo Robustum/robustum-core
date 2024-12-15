@@ -2,18 +2,16 @@ package dev.robustum.core.recipe
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import dev.robustum.core.extensions.getEntryOrThrow
+import dev.robustum.core.codec.RegistryEntryListCodec
 import dev.robustum.core.registry.RegistryEntryList
-import dev.robustum.core.registry.RegistryEntryListCodec
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants
 import net.minecraft.fluid.Fluid
 import net.minecraft.fluid.Fluids
 import net.minecraft.tag.Tag
-import net.minecraft.util.registry.Registry
 import java.util.function.BiPredicate
 
 @Suppress("UnstableApiUsage")
-class FluidIngredient private constructor(val entryList: RegistryEntryList<Fluid>, val amount: Long) : BiPredicate<Fluid, Long> {
+class FluidIngredient(val entryList: RegistryEntryList<Fluid>, val amount: Long = FluidConstants.BUCKET) : BiPredicate<Fluid, Long> {
     companion object {
         @JvmField
         val EMPTY = FluidIngredient(RegistryEntryList.empty(), 0)
@@ -30,12 +28,9 @@ class FluidIngredient private constructor(val entryList: RegistryEntryList<Fluid
         }
     }
 
-    constructor(tag: Tag<Fluid>, amount: Long = FluidConstants.BUCKET) : this(RegistryEntryList.tag(tag), amount)
+    constructor(tag: Tag<Fluid>, amount: Long = FluidConstants.BUCKET) : this(RegistryEntryList.ofTag(tag), amount)
 
-    constructor(fluid: Fluid, amount: Long = FluidConstants.BUCKET) : this(
-        RegistryEntryList.of(fluid, Registry.FLUID::getEntryOrThrow),
-        amount,
-    )
+    constructor(fluid: Fluid, amount: Long = FluidConstants.BUCKET) : this(RegistryEntryList.direct(fluid), amount)
 
     val isEmpty: Boolean
         get() = entryList.isEmpty || amount <= 0

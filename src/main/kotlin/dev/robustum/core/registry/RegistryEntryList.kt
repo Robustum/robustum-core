@@ -2,14 +2,14 @@ package dev.robustum.core.registry
 
 import com.mojang.datafixers.util.Either
 import dev.robustum.core.extensions.getSafeValue
-import dev.robustum.core.registry.RegistryEntryList.Companion.tag
-import net.minecraft.tag.SetTag
 import net.minecraft.tag.Tag
+import java.util.function.Function
 import kotlin.random.Random
 
 /**
- * [RegistryEntry]または[Tag]を持つオブジェクトです。
+ * [T]値の[List]または[Tag]を持つオブジェクトです。
  */
+
 sealed interface RegistryEntryList<T : Any> : Iterable<T> {
     companion object {
         /**
@@ -19,29 +19,34 @@ sealed interface RegistryEntryList<T : Any> : Iterable<T> {
         fun <T : Any> empty(): RegistryEntryList<T> = Empty()
 
         /**
-         * [entry]を持つ[RegistryEntryList]を返します。
+         * [value]を持つ[RegistryEntryList]を返します。
          */
         @JvmStatic
-        fun <T : Any> of(entry: RegistryEntry<T>): RegistryEntryList<T> = Direct(entry)
+        fun <T : Any> direct(value: T): RegistryEntryList<T> = direct(listOf(value))
 
         /**
-         * [value]から[RegistryEntryList]を返します。
-         * @param transform [T]を[RegistryEntry]に変換するブロック
+         * [values]を持つ[RegistryEntryList]を返します。
          */
         @JvmStatic
-        fun <T : Any> of(value: T, transform: (T) -> RegistryEntry<T>): RegistryEntryList<T> = of(transform(value))
+        fun <T : Any> direct(vararg values: T): RegistryEntryList<T> = direct(values.toList())
+
+        /**
+         * [values]を持つ[RegistryEntryList]を返します。
+         */
+        @JvmStatic
+        fun <T : Any> direct(values: List<T>): RegistryEntryList<T> = Direct(values)
 
         /**
          * [tag]を持つ[RegistryEntryList]を返します。
          */
         @JvmStatic
-        fun <T : Any> tag(tag: Tag<T>): RegistryEntryList<T> = Tagged(tag)
+        fun <T : Any> ofTag(tag: Tag<T>): RegistryEntryList<T> = Tagged(tag)
     }
 
     /**
-     * [Tag]または[T]を持つ[Either]を返します。
+     * [Tag]または[List]を持つ[Either]を返します。
      */
-    val storage: Either<Tag<T>, T>
+    val storage: Either<Tag<T>, List<T>>
 
     /**
      * この[RegistryEntryList]の要素が空か判定します。
@@ -50,16 +55,16 @@ sealed interface RegistryEntryList<T : Any> : Iterable<T> {
         get() = entries.isEmpty()
 
     /**
-     * この[RegistryEntryList]の要素のリストを返します。
-     */
-    val entries: List<T>
-        get() = storage.map(Tag<T>::getSafeValue, ::listOf)
-
-    /**
      * この[RegistryEntryList]の要素の個数を返します。
      */
     val size: Int
         get() = entries.size
+
+    /**
+     * この[RegistryEntryList]の要素のリストを返します。
+     */
+    val entries: List<T>
+        get() = storage.map(Tag<T>::getSafeValue, Function.identity())
 
     /**
      * この[RegistryEntryList]からランダムな要素を返します。
@@ -69,24 +74,24 @@ sealed interface RegistryEntryList<T : Any> : Iterable<T> {
     /**
      * 指定された[index]に対応する要素を返します。
      */
-    operator fun get(index: Int): T = entries[index]
+    operator fun get(index: Int): T? = entries.getOrNull(index)
 
     /**
      * 指定された要素[entry]が含まれるか判定します。
      */
-    operator fun contains(entry: T): Boolean = storage.map({ it.contains(entry) }, { it == entry })
+    operator fun contains(entry: T): Boolean = entries.contains(entry)
 
     override fun iterator(): Iterator<T> = entries.iterator()
 
     private class Empty<T : Any> : RegistryEntryList<T> {
-        override val storage: Either<Tag<T>, T> = Either.left(SetTag.empty())
+        override val storage: Either<Tag<T>, List<T>> = Either.right(listOf())
     }
 
-    private class Direct<T : Any>(entry: RegistryEntry<T>) : RegistryEntryList<T> {
-        override val storage: Either<Tag<T>, T> = Either.right(entry.value)
+    private class Direct<T : Any>(values: List<T>) : RegistryEntryList<T> {
+        override val storage: Either<Tag<T>, List<T>> = Either.right(values)
     }
 
     private class Tagged<T : Any>(tag: Tag<T>) : RegistryEntryList<T> {
-        override val storage: Either<Tag<T>, T> = Either.left(tag)
+        override val storage: Either<Tag<T>, List<T>> = Either.left(tag)
     }
 }

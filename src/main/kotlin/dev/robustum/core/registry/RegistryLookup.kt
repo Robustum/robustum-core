@@ -1,7 +1,6 @@
 package dev.robustum.core.registry
 
 import com.mojang.serialization.DataResult
-import dev.robustum.core.extensions.RobustumCodecs
 import net.minecraft.block.Block
 import net.minecraft.entity.EntityType
 import net.minecraft.fluid.Fluid
@@ -23,10 +22,16 @@ interface RegistryLookup<T : Any> {
     fun getEntry(id: Identifier): DataResult<RegistryEntry<T>>
 
     /**
-     * 指定された[value]から[RobustumCodecs.TagEntryId]を返します。
+     * 指定された[id]から[T]を返します。
      * @return 結果は[DataResult]でラップされます。
      */
-    fun getId(value: T): DataResult<RobustumCodecs.TagEntryId>
+    fun getValue(id: Identifier): DataResult<T> = getEntry(id).map(RegistryEntry<T>::value)
+
+    /**
+     * 指定された[value]から[TagEntryId]を返します。
+     * @return 結果は[DataResult]でラップされます。
+     */
+    fun getId(value: T): DataResult<TagEntryId>
 
     /**
      * 指定された[id]から[RegistryEntryList]を返します。
@@ -35,10 +40,10 @@ interface RegistryLookup<T : Any> {
     fun getTag(id: Identifier): DataResult<RegistryEntryList<T>>
 
     /**
-     * 指定された[tag]から[RobustumCodecs.TagEntryId]を返します。
+     * 指定された[tag]から[TagEntryId]を返します。
      * @return 結果は[DataResult]でラップされます。
      */
-    fun getId(tag: Tag<T>): DataResult<RobustumCodecs.TagEntryId>
+    fun getId(tag: Tag<T>): DataResult<TagEntryId>
 
     companion object {
         /**
@@ -80,21 +85,21 @@ interface RegistryLookup<T : Any> {
                 ?.let(DataResult<T>::success)
                 ?: DataResult.error("Unknown registry id: $id")
 
-            override fun getId(value: T): DataResult<RobustumCodecs.TagEntryId> = registry
+            override fun getId(value: T): DataResult<TagEntryId> = registry
                 .getId(value)
-                ?.let { RobustumCodecs.TagEntryId(it, false) }
+                ?.let { TagEntryId(it, false) }
                 ?.let(DataResult<Identifier>::success)
                 ?: DataResult.error("Unknown registry value: $value")
 
             override fun getTag(id: Identifier): DataResult<RegistryEntryList<T>> = groupGetter()
                 .getTag(id)
-                ?.let(RegistryEntryList.Companion::tag)
+                ?.let(RegistryEntryList.Companion::ofTag)
                 ?.let(DataResult<RegistryEntryList<T>>::success)
                 ?: DataResult.error("Unknown tag id: $id")
 
-            override fun getId(tag: Tag<T>): DataResult<RobustumCodecs.TagEntryId> = groupGetter()
+            override fun getId(tag: Tag<T>): DataResult<TagEntryId> = groupGetter()
                 .getUncheckedTagId(tag)
-                ?.let { RobustumCodecs.TagEntryId(it, true) }
+                ?.let { TagEntryId(it, true) }
                 ?.let(DataResult<Identifier>::success)
                 ?: DataResult.error("Unknown tag: $tag")
         }

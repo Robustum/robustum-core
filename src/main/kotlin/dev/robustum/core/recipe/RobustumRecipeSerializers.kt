@@ -3,7 +3,7 @@ package dev.robustum.core.recipe
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import dev.robustum.core.RobustumCore
-import dev.robustum.core.extensions.RobustumCodecs
+import dev.robustum.core.codec.RobustumCodecs
 import dev.robustum.core.extensions.toDefaultedList
 import net.minecraft.item.ItemStack
 import net.minecraft.recipe.*

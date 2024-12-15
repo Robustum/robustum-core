@@ -2,18 +2,16 @@ package dev.robustum.core.recipe
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import dev.robustum.core.extensions.getEntryOrThrow
+import dev.robustum.core.codec.RegistryEntryListCodec
 import dev.robustum.core.extensions.isIn
 import dev.robustum.core.registry.RegistryEntryList
-import dev.robustum.core.registry.RegistryEntryListCodec
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.recipe.Ingredient
 import net.minecraft.tag.Tag
-import net.minecraft.util.registry.Registry
 import java.util.function.Predicate
 
-class ItemIngredient private constructor(val entryList: RegistryEntryList<Item>, val count: Int) : Predicate<ItemStack> {
+class ItemIngredient(val entryList: RegistryEntryList<Item>, val count: Int = 1) : Predicate<ItemStack> {
     companion object {
         @JvmField
         val EMPTY = ItemIngredient(RegistryEntryList.empty(), 0)
@@ -30,18 +28,17 @@ class ItemIngredient private constructor(val entryList: RegistryEntryList<Item>,
         }
     }
 
-    constructor(tag: Tag<Item>, count: Int = 1) : this(RegistryEntryList.tag(tag), count)
+    constructor(tag: Tag<Item>, count: Int = 1) : this(RegistryEntryList.ofTag(tag), count)
 
-    constructor(item: Item, count: Int = 1) : this(
-        RegistryEntryList.of(item, Registry.ITEM::getEntryOrThrow),
-        count,
-    )
+    constructor(item: Item, count: Int = 1) : this(RegistryEntryList.direct(item), count)
 
     val isEmpty: Boolean
         get() = entryList.isEmpty || count <= 0
 
     val vanillaIngredient: Ingredient
-        get() = entryList.storage.map(Ingredient::fromTag, Ingredient::ofItems)
+        get() = entryList.storage.map(Ingredient::fromTag) { items: List<Item> ->
+            items.map(::ItemStack).stream().let(Ingredient::ofStacks)
+        }
 
     override fun test(stack: ItemStack): Boolean = when (stack.isEmpty) {
         true -> this.isEmpty
