@@ -81,7 +81,7 @@ object RobustumCodecs {
      * "#minecraft:wool" -> Ingredient.fromTag(ItemTags.WOOL)
      * ```
      */
-    @Suppress("KotlinConstantConditions")
+    @Suppress("CAST_NEVER_SUCCEEDS")
     @JvmField
     val INGREDIENT: Codec<Ingredient> = RegistryEntryListCodec.ITEM.xmap(
         { ItemIngredient(it).vanillaIngredient },

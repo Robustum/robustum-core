@@ -46,14 +46,14 @@ class RegistryEntryListCodec<A : Any>(private val lookup: RegistryLookup<A>) : C
                 1 -> lookup.getId(entries[0]).map(TagEntryId::asString).map(ops::createString)
 
                 else -> {
-                    val results: List<T> = entries
+                    entries
                         .map(lookup::getId)
                         .map { result: DataResult<TagEntryId> -> result.getOrThrow(false, logger::error) }
                         .map(TagEntryId::asString)
                         .map(ops::createString)
-                    val list: T? = ops.emptyList()
-                    ops.mergeToList(list, results)
-                    DataResult.success(list)
+                        .stream()
+                        .let(ops::createList)
+                        .let(DataResult<T>::success)
                 }
             }
         },
