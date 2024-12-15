@@ -14,7 +14,7 @@ inline fun <reified T : Any> Iterable<T>.toDefaultedList(defaultValue: T): Defau
     DefaultedList<T>.copyOf(defaultValue, *this.toList().toTypedArray())
 
 /**
- * [Map]を[DefaultedList]で変換する
+ * [Map]を[DefaultedList]で変換します。
  * @param T 値のクラス
  * @param defaultValue [DefaultedList]の初期値
  * @param transform [Map.Entry]を[T]に変換するブロック

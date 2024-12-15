@@ -1,6 +1,7 @@
 package dev.robustum.core.registry
 
 import com.mojang.serialization.DataResult
+import dev.robustum.core.extensions.getIdOrNull
 import net.minecraft.block.Block
 import net.minecraft.entity.EntityType
 import net.minecraft.fluid.Fluid
@@ -97,8 +98,8 @@ interface RegistryLookup<T : Any> {
                 ?.let(DataResult<RegistryEntryList<T>>::success)
                 ?: DataResult.error("Unknown tag id: $id")
 
-            override fun getId(tag: Tag<T>): DataResult<TagEntryId> = groupGetter()
-                .getUncheckedTagId(tag)
+            override fun getId(tag: Tag<T>): DataResult<TagEntryId> = tag
+                .getIdOrNull(groupGetter())
                 ?.let { TagEntryId(it, true) }
                 ?.let(DataResult<Identifier>::success)
                 ?: DataResult.error("Unknown tag: $tag")

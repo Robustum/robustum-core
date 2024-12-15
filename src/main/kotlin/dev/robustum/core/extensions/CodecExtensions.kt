@@ -83,3 +83,35 @@ fun <R : Any> DataResult<R>.onSucceeded(action: (R) -> Unit): DataResult<R> = ap
  * @param action 値が存在しない場合に実行されるブロック
  */
 fun <R : Any> DataResult<R>.onErrored(action: (DataResult.PartialResult<R>) -> Unit): DataResult<R> = apply { error().ifPresent(action) }
+
+/**
+ * 指定された[validator]で検証した[DataResult]を返します。
+ * @param R 値のクラス
+ * @param validator 値を[Boolean]で評価する。
+ * @param errorMessage [validator]がfalseの場合のエラー文
+ * @return [validator]で評価された[DataResult]
+ */
+fun <R : Any> DataResult<R>.validate(validator: (R) -> Boolean, errorMessage: String): DataResult<R> = flatMap { result: R ->
+    when (validator(result)) {
+        true -> DataResult.success(result)
+        false -> DataResult.error(errorMessage)
+    }
+}
+
+/**
+ * 指定された[Optional]を[DataResult]に変換します。
+ * @param errorMessage [Optional]が値を保持していない場合のエラー文
+ * @return [Optional]が値を保持している場合は[DataResult.success]，それ以外は[DataResult.error]
+ */
+fun <T : Any> Optional<T>.toDataResult(errorMessage: String): DataResult<T> =
+    map(DataResult<T>::success).orElse(DataResult.error(errorMessage))
+
+/**
+ * 指定された[T]を[DataResult]に変換します。
+ * @param errorMessage [T]がnullの場合のエラー文
+ * @return [T]がnullでない場合は[DataResult.success]，それ以外は[DataResult.error]
+ */
+fun <T : Any> T?.toDataResult(errorMessage: String): DataResult<T> = this?.let(DataResult<T>::success) ?: DataResult.error(errorMessage)
+
+fun <R : Any, T : Any> DataResult<R>.mapNotNull(transform: (R) -> T?): DataResult<T> =
+    flatMap { result: R -> transform(result).toDataResult("Transformed value was null!") }

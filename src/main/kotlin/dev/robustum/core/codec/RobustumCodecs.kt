@@ -3,8 +3,10 @@ package dev.robustum.core.codec
 import com.mojang.serialization.Codec
 import com.mojang.serialization.DataResult
 import com.mojang.serialization.codecs.RecordCodecBuilder
+import dev.robustum.core.extensions.getIdOrNull
 import dev.robustum.core.extensions.lazyCodec
 import dev.robustum.core.extensions.optionalOf
+import dev.robustum.core.extensions.toDataResult
 import dev.robustum.core.extensions.validate
 import dev.robustum.core.mixin.codec.IngredientAccessor
 import dev.robustum.core.recipe.ItemIngredient
@@ -16,6 +18,9 @@ import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.recipe.Ingredient
+import net.minecraft.tag.Tag
+import net.minecraft.tag.TagGroup
+import net.minecraft.util.Identifier
 import net.minecraft.util.registry.Registry
 import java.util.*
 
@@ -102,4 +107,12 @@ object RobustumCodecs {
                 }.getOrDefault(empty)
         }
     }
+
+    //    Tag    //
+
+    @JvmStatic
+    fun <T : Any> identifiedTagCodec(groupGetter: () -> TagGroup<T>): Codec<Tag<T>> = Identifier.CODEC.flatXmap(
+        { groupGetter().getTag(it).toDataResult("Unknown tag: $it") },
+        { it.getIdOrNull(groupGetter()).toDataResult("Unknown tag: $it") },
+    )
 }
