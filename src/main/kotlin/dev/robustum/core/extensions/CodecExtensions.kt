@@ -15,14 +15,6 @@ import java.util.function.Function
 //    Codec    //
 
 /**
- * 指定された[validator]で検証した[Codec]を返します。
- * @param A 値のクラス
- * @param validator 値を[DataResult]で評価する。
- * @return [validator]で評価された[Codec]
- */
-fun <A : Any> Codec<A>.validate(validator: (A) -> DataResult<A>): Codec<A> = flatXmap(validator, validator)
-
-/**
  * 指定された[getter]で遅延評価された[Codec]を返します。
  * @param A 値のクラス
  * @param getter 遅延評価された元の[Codec]
@@ -33,6 +25,19 @@ fun <A : Any> lazyCodec(getter: () -> Codec<A>): Codec<A> = object : Codec<A> {
 
     override fun <T : Any> decode(ops: DynamicOps<T>, input: T): DataResult<Pair<A, T>> = getter().decode(ops, input)
 }
+
+fun <A : Any> alternativeCodec(first: Codec<A>, second: Codec<A>): Codec<A> = Codec.either(first, second).xmap(
+    { either: Either<A, A> -> either.map(Function.identity(), Function.identity()) },
+    Either<A, A>::left,
+)
+
+/**
+ * 指定された[validator]で検証した[Codec]を返します。
+ * @param A 値のクラス
+ * @param validator 値を[DataResult]で評価する。
+ * @return [validator]で評価された[Codec]
+ */
+fun <A : Any> Codec<A>.validate(validator: (A) -> DataResult<A>): Codec<A> = flatXmap(validator, validator)
 
 fun <A : Any, S : Any> Codec<A>.dispatch(type: Function<S, A>, codec: Function<A, MapCodec<S>>): Codec<S> = dispatch("type", type, codec)
 
