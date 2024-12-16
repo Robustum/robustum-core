@@ -15,7 +15,7 @@ import net.minecraft.recipe.SmeltingRecipe
 import org.junit.jupiter.api.Test
 import kotlin.test.BeforeTest
 
-class TestRobustumRecipeSerializers {
+class TestRobustumRecipes {
     @BeforeTest
     fun setup() {
         SharedConstants.getGameVersion()
@@ -23,7 +23,7 @@ class TestRobustumRecipeSerializers {
     }
 
     @Test
-    fun testSmelting() {
+    fun testRecipes() {
         RobustumRecipeSerializers.SMELTING
             .write(
                 JsonOps.INSTANCE,
@@ -44,8 +44,6 @@ class TestRobustumRecipeSerializers {
                     "exp"(32767.0)
                     "input"("minecraft:dirt")
                 }
-            }.onErrored {
-                error(it.message())
-            }
+            }.onErrored(::error)
     }
 }

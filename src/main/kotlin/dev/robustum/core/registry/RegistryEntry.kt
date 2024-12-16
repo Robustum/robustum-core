@@ -3,9 +3,13 @@ package dev.robustum.core.registry
 import net.minecraft.util.Identifier
 
 /**
- * レジストリIDとその値を持つデータクラスです。
+ * レジストリIDとその値を持つインターフェースです。
  * @param T 値のクラス
- * @param key レジストリID
- * @param value [key]に対応する値
+ * @see [RegistryLookup.getEntry]
  */
-data class RegistryEntry<T : Any>(val key: Identifier, val value: T)
+sealed interface RegistryEntry<T : Any> {
+    val id: Identifier
+    val value: T
+}
+
+internal data class RegistryEntryImpl<T : Any>(override val id: Identifier, override val value: T) : RegistryEntry<T>

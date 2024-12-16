@@ -82,19 +82,34 @@ fun <R : Any> DataResult<R>.onSucceeded(action: (R) -> Unit): DataResult<R> = ap
  * [DataResult]が値を保持していない場合は指定された[action]をその値で呼び出し、それ以外の場合は何も行いません。
  * @param action 値が存在しない場合に実行されるブロック
  */
-fun <R : Any> DataResult<R>.onErrored(action: (DataResult.PartialResult<R>) -> Unit): DataResult<R> = apply { error().ifPresent(action) }
+fun <R : Any> DataResult<R>.onErrored(action: (String) -> Unit): DataResult<R> =
+    apply { error().map(DataResult.PartialResult<R>::message).ifPresent(action) }
 
 /**
- * 指定された[validator]で検証した[DataResult]を返します。
+ * 指定された[predicate]で検証した[DataResult]を返します。
  * @param R 値のクラス
- * @param validator 値を[Boolean]で評価する。
- * @param errorMessage [validator]がfalseの場合のエラー文
- * @return [validator]で評価された[DataResult]
+ * @param predicate 値を[Boolean]で評価する。
+ * @param errorMessage [predicate]がfalseの場合のエラー文
+ * @return [predicate]で評価された[DataResult]
  */
-fun <R : Any> DataResult<R>.validate(validator: (R) -> Boolean, errorMessage: String): DataResult<R> = flatMap { result: R ->
-    when (validator(result)) {
+fun <R : Any> DataResult<R>.filter(predicate: (R) -> Boolean, errorMessage: String): DataResult<R> = flatMap { result: R ->
+    when (predicate(result)) {
         true -> DataResult.success(result)
         false -> DataResult.error(errorMessage)
+    }
+}
+
+/**
+ * 指定された[predicate]で検証した[DataResult]を返します。
+ * @param R 値のクラス
+ * @param predicate 値を[Boolean]で評価する。
+ * @param errorMessage [predicate]がtrueの場合のエラー文
+ * @return [predicate]で評価された[DataResult]
+ */
+fun <R : Any> DataResult<R>.filterNot(predicate: (R) -> Boolean, errorMessage: String): DataResult<R> = flatMap { result: R ->
+    when (predicate(result)) {
+        true -> DataResult.error(errorMessage)
+        false -> DataResult.success(result)
     }
 }
 

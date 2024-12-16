@@ -23,7 +23,7 @@ object RobustumRecipeSerializers {
                         Codec.STRING
                             .optionalFieldOf("group", "")
                             .forGetter(ShapelessRecipe::getGroup),
-                        RobustumCodecs.INGREDIENT
+                        RobustumCodecs.NON_EMPTY_INGREDIENT
                             .listOf()
                             .fieldOf("inputs")
                             .forGetter(ShapelessRecipe::getIngredients),
@@ -79,7 +79,7 @@ object RobustumRecipeSerializers {
                     Codec.STRING
                         .optionalFieldOf("group", "")
                         .forGetter(StonecuttingRecipe::getGroup),
-                    RobustumCodecs.INGREDIENT
+                    RobustumCodecs.NON_EMPTY_INGREDIENT
                         .fieldOf("input")
                         .forGetter { it.ingredients[0] },
                     RobustumCodecs.ITEM_STACK
@@ -101,7 +101,7 @@ object RobustumRecipeSerializers {
                     Codec.STRING
                         .optionalFieldOf("group", "")
                         .forGetter { it.group },
-                    RobustumCodecs.INGREDIENT
+                    RobustumCodecs.NON_EMPTY_INGREDIENT
                         .fieldOf("input")
                         .forGetter { it.ingredients[0] },
                     RobustumCodecs.ITEM_STACK

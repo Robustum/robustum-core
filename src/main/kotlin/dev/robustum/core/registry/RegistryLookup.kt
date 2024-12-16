@@ -82,7 +82,7 @@ interface RegistryLookup<T : Any> {
         fun <T : Any> of(registry: Registry<T>, groupGetter: () -> TagGroup<T>): RegistryLookup<T> = object : RegistryLookup<T> {
             override fun getEntry(id: Identifier): DataResult<RegistryEntry<T>> = registry
                 .get(id)
-                ?.let { RegistryEntry(id, it) }
+                ?.let { RegistryEntryImpl(id, it) }
                 ?.let(DataResult<T>::success)
                 ?: DataResult.error("Unknown registry id: $id")
 

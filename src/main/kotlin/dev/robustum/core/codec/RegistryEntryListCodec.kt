@@ -5,6 +5,7 @@ import com.mojang.datafixers.util.Pair
 import com.mojang.serialization.Codec
 import com.mojang.serialization.DataResult
 import com.mojang.serialization.DynamicOps
+import dev.robustum.core.extensions.createList
 import dev.robustum.core.extensions.entryOrList
 import dev.robustum.core.registry.RegistryEntryList
 import dev.robustum.core.registry.RegistryLookup
@@ -51,7 +52,6 @@ class RegistryEntryListCodec<A : Any>(private val lookup: RegistryLookup<A>) : C
                         .map { result: DataResult<TagEntryId> -> result.getOrThrow(false, logger::error) }
                         .map(TagEntryId::asString)
                         .map(ops::createString)
-                        .stream()
                         .let(ops::createList)
                         .let(DataResult<T>::success)
                 }

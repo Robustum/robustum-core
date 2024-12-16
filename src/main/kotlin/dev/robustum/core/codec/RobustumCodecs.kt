@@ -3,11 +3,7 @@ package dev.robustum.core.codec
 import com.mojang.serialization.Codec
 import com.mojang.serialization.DataResult
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import dev.robustum.core.extensions.getIdOrNull
-import dev.robustum.core.extensions.lazyCodec
-import dev.robustum.core.extensions.optionalOf
-import dev.robustum.core.extensions.toDataResult
-import dev.robustum.core.extensions.validate
+import dev.robustum.core.extensions.*
 import dev.robustum.core.mixin.codec.IngredientAccessor
 import dev.robustum.core.recipe.ItemIngredient
 import dev.robustum.core.registry.RegistryEntryList
@@ -91,10 +87,20 @@ object RobustumCodecs {
             empty
         } else {
             val entries: Array<out Ingredient.Entry> = (ingredient as IngredientAccessor).entries
-            entries
-                .runCatching {
-                    val items: List<Item> = entries
-                        .flatMap(Ingredient.Entry::getStacks)
+            if (entries.size == 1) {
+                val entry: Ingredient.Entry = entries[0]
+                when (entry) {
+                    is Ingredient.StackEntry -> RegistryEntryList.direct(entry.stacks.first().item)
+                    is Ingredient.TagEntry -> RegistryEntryList.ofTag(entry.tag)
+                    else -> empty
+                }
+            } else {
+                val stackEntries: List<Ingredient.StackEntry> = entries.filterIsInstance<Ingredient.StackEntry>()
+                if (stackEntries.isEmpty()) {
+                    empty
+                } else {
+                    val items: List<Item> = stackEntries
+                        .flatMap(Ingredient.StackEntry::getStacks)
                         .map(ItemStack::getItem)
                         .distinct()
                     when (items.size) {
@@ -104,8 +110,14 @@ object RobustumCodecs {
 
                         else -> RegistryEntryList.direct(items)
                     }
-                }.getOrDefault(empty)
+                }
+            }
         }
+    }
+
+    @JvmField
+    val NON_EMPTY_INGREDIENT: Codec<Ingredient> = INGREDIENT.validate { ingredient: Ingredient ->
+        DataResult.success(ingredient).filterNot(Ingredient::isEmpty, "Empty ingredient is not allowed!")
     }
 
     //    Tag    //

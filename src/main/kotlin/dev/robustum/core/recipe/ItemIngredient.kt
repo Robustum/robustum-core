@@ -36,8 +36,11 @@ class ItemIngredient(val entryList: RegistryEntryList<Item>, val count: Int = 1)
         get() = entryList.isEmpty || count <= 0
 
     val vanillaIngredient: Ingredient
-        get() = entryList.storage.map(Ingredient::fromTag) { items: List<Item> ->
-            items.map(::ItemStack).stream().let(Ingredient::ofStacks)
+        get() = when (isEmpty) {
+            true -> Ingredient.EMPTY
+            false -> entryList.storage.map(Ingredient::fromTag) { items: List<Item> ->
+                items.map(::ItemStack).stream().let(Ingredient::ofStacks)
+            }
         }
 
     override fun test(stack: ItemStack): Boolean = when (stack.isEmpty) {
