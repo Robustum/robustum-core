@@ -7,9 +7,9 @@ import net.minecraft.util.Identifier
  * @param T 値のクラス
  * @see [RegistryLookup.getEntry]
  */
-sealed interface RegistryEntry<T : Any> {
+sealed interface IdentifiedEntry<T : Any> {
     val id: Identifier
     val value: T
 }
 
-internal data class RegistryEntryImpl<T : Any>(override val id: Identifier, override val value: T) : RegistryEntry<T>
+internal data class IdentifiedEntryImpl<T : Any>(override val id: Identifier, override val value: T) : IdentifiedEntry<T>

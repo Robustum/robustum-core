@@ -17,16 +17,16 @@ import net.minecraft.util.registry.Registry
  */
 interface RegistryLookup<T : Any> {
     /**
-     * 指定された[id]から[RegistryEntry]を返します。
+     * 指定された[id]から[IdentifiedEntry]を返します。
      * @return 結果は[DataResult]でラップされます。
      */
-    fun getEntry(id: Identifier): DataResult<RegistryEntry<T>>
+    fun getEntry(id: Identifier): DataResult<IdentifiedEntry<T>>
 
     /**
      * 指定された[id]から[T]を返します。
      * @return 結果は[DataResult]でラップされます。
      */
-    fun getValue(id: Identifier): DataResult<T> = getEntry(id).map(RegistryEntry<T>::value)
+    fun getValue(id: Identifier): DataResult<T> = getEntry(id).map(IdentifiedEntry<T>::value)
 
     /**
      * 指定された[value]から[TagEntryId]を返します。
@@ -80,9 +80,9 @@ interface RegistryLookup<T : Any> {
          */
         @JvmStatic
         fun <T : Any> of(registry: Registry<T>, groupGetter: () -> TagGroup<T>): RegistryLookup<T> = object : RegistryLookup<T> {
-            override fun getEntry(id: Identifier): DataResult<RegistryEntry<T>> = registry
+            override fun getEntry(id: Identifier): DataResult<IdentifiedEntry<T>> = registry
                 .get(id)
-                ?.let { RegistryEntryImpl(id, it) }
+                ?.let { IdentifiedEntryImpl(id, it) }
                 ?.let(DataResult<T>::success)
                 ?: DataResult.error("Unknown registry id: $id")
 
