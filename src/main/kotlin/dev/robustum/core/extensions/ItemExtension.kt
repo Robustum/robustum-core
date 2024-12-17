@@ -18,14 +18,13 @@ fun ItemStack.isOf(item: ItemConvertible): Boolean = this.item == item.asItem()
 //    ItemUsageContext    //
 
 /**
- * この[ItemUsageContext]が持っている[net.minecraft.world.World]と[net.minecraft.util.math.BlockPos]から[BlockState]を取得します。
+ * この[ItemUsageContext]から[BlockState]を取得します。
  */
 val ItemUsageContext.blockState: BlockState
     get() = world.getBlockState(blockPos)
 
 /**
- * この[ItemUsageContext]が持っている[net.minecraft.world.World]と[net.minecraft.util.math.BlockPos]から[T]を取得します。
+ * この[ItemUsageContext]から[T]を取得します。
  * @param T [BlockEntity]を継承したクラス
- * @return [net.minecraft.world.World.getBlockEntity]で取得した[BlockEntity]が[T]を継承していない場合はnull
  */
 inline fun <reified T : BlockEntity> ItemUsageContext.getBlockEntity(): T? = world.getBlockEntity(blockPos) as? T

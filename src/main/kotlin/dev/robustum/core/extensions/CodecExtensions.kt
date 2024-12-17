@@ -12,6 +12,8 @@ import net.minecraft.util.collection.DefaultedList
 import java.util.*
 import java.util.function.Function
 
+typealias DataPair<F, S> = Pair<F, S>
+
 //    Codec    //
 
 /**

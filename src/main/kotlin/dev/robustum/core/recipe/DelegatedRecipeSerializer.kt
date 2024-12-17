@@ -12,6 +12,12 @@ import net.minecraft.recipe.RecipeSerializer
 import net.minecraft.util.Identifier
 import net.minecraft.util.registry.Registry
 
+/**
+ * クライアントへの同期を[delegated]に委譲した[RecipeSerializer]です。
+ * @param T レシピのクラス
+ * @param recipeCodec レシピのコーデック
+ * @see RobustumRecipeSerializers
+ */
 class DelegatedRecipeSerializer<T : Recipe<*>>(private val delegated: RecipeSerializer<T>, private val recipeCodec: RecipeCodec<T>) :
     RecipeSerializer<T> {
     private fun createCodec(id: Identifier): Codec<T> = RecordCodecBuilder.create { instance ->
@@ -29,6 +35,11 @@ class DelegatedRecipeSerializer<T : Recipe<*>>(private val delegated: RecipeSeri
         .result()
         .orElseThrow()
 
+    /**
+     * 指定された[recipe]を[dynamicOps]で[O]に変換します。
+     * @param O 変換先のクラス
+     * @return [DataResult]で包まれた[O]
+     */
     fun <O : Any> write(dynamicOps: DynamicOps<O>, recipe: T): DataResult<O> = createCodec(recipe.id).encodeStart(dynamicOps, recipe)
 
     override fun read(id: Identifier, buf: PacketByteBuf): T = delegated.read(id, buf)

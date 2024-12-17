@@ -23,7 +23,7 @@ class TestRobustumRecipes {
     }
 
     @Test
-    fun testRecipes() {
+    fun testRecipe() {
         RobustumRecipeSerializers.SMELTING
             .write(
                 JsonOps.INSTANCE,

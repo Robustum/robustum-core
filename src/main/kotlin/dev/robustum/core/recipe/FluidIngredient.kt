@@ -10,6 +10,11 @@ import net.minecraft.fluid.Fluids
 import net.minecraft.tag.Tag
 import java.util.function.BiPredicate
 
+/**
+ * 液体版の[ItemIngredient]です。
+ * @param entryList 条件に一致する液体のリスト
+ * @param amount 必要な液体量
+ */
 @Suppress("UnstableApiUsage")
 class FluidIngredient(val entryList: RegistryEntryList<Fluid>, val amount: Long = FluidConstants.BUCKET) : BiPredicate<Fluid, Long> {
     companion object {
@@ -32,6 +37,9 @@ class FluidIngredient(val entryList: RegistryEntryList<Fluid>, val amount: Long 
 
     constructor(fluid: Fluid, amount: Long = FluidConstants.BUCKET) : this(RegistryEntryList.direct(fluid), amount)
 
+    /**
+     * この素材が有効かどうか判定します。
+     */
     val isEmpty: Boolean
         get() = entryList.isEmpty || amount <= 0
 

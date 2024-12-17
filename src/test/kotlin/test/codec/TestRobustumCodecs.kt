@@ -24,8 +24,7 @@ class TestRobustumCodecs {
     }
 
     @Test
-    fun testCodecs() {
-        // block
+    fun testBlock() {
         RobustumCodecs.BLOCK
             .encodeStart(JsonOps.INSTANCE, Blocks.STONE)
             .onSucceeded { it.asString shouldBe "minecraft:stone" }
@@ -34,7 +33,10 @@ class TestRobustumCodecs {
         RobustumCodecs.BLOCK
             .encodeStart(JsonOps.INSTANCE, Blocks.AIR)
             .onErrored { it shouldBe "Block must not be minecraft:air" }
-        // item
+    }
+
+    @Test
+    fun testItem() {
         RobustumCodecs.ITEM
             .encodeStart(JsonOps.INSTANCE, Items.IRON_INGOT)
             .onSucceeded { it.asString shouldBe "minecraft:iron_ingot" }
@@ -43,7 +45,9 @@ class TestRobustumCodecs {
         RobustumCodecs.ITEM
             .encodeStart(JsonOps.INSTANCE, Items.AIR)
             .onErrored { it shouldBe "Item must not be minecraft:air" }
-        // item stack
+    }
+
+    fun testItemStack() {
         RobustumCodecs.ITEM_STACK
             .encodeStart(JsonOps.INSTANCE, ItemStack(Items.IRON_INGOT, 4))
             .onSucceeded {
@@ -57,7 +61,10 @@ class TestRobustumCodecs {
             .encodeStart(JsonOps.INSTANCE, ItemStack.EMPTY)
             .onSucceeded { it shouldBe JsonOps.INSTANCE.emptyMap() }
             .onErrored(::error)
-        // ingredient (and registry entry list)
+    }
+
+    @Test
+    fun testIngredient() {
         RobustumCodecs.INGREDIENT
             .encodeStart(JsonOps.INSTANCE, Ingredient.ofItems(Items.DIAMOND))
             .onSucceeded { it.asString shouldBe "minecraft:diamond" }

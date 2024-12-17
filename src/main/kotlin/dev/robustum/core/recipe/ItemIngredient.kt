@@ -11,6 +11,11 @@ import net.minecraft.recipe.Ingredient
 import net.minecraft.tag.Tag
 import java.util.function.Predicate
 
+/**
+ * 個数を受け取る[Ingredient]のクラスです。
+ * @param entryList 条件に一致するアイテムのリスト
+ * @param count 必要な個数
+ */
 class ItemIngredient(val entryList: RegistryEntryList<Item>, val count: Int = 1) : Predicate<ItemStack> {
     companion object {
         @JvmField
@@ -32,9 +37,15 @@ class ItemIngredient(val entryList: RegistryEntryList<Item>, val count: Int = 1)
 
     constructor(item: Item, count: Int = 1) : this(RegistryEntryList.direct(item), count)
 
+    /**
+     * この素材が有効かどうか判定します。
+     */
     val isEmpty: Boolean
         get() = entryList.isEmpty || count <= 0
 
+    /**
+     * この素材をバニラの[Ingredient]に変換します。
+     */
     val vanillaIngredient: Ingredient
         get() = when (isEmpty) {
             true -> Ingredient.EMPTY

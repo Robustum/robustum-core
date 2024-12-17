@@ -20,7 +20,7 @@ class TestRobustumRegistries {
     }
 
     @Test
-    fun testRegistries() {
+    fun testRegistry() {
         // lookup
         RegistryLookup.BLOCK
             .getId(Blocks.STONE)

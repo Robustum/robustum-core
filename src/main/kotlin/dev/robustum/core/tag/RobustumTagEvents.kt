@@ -13,7 +13,9 @@ import java.util.function.BiConsumer
 
 object RobustumTagEvents {
     /**
-     * [net.minecraft.tag.TagGroupLoader.prepareReload]の最後で呼び出される
+     * 動的に[Tag]を登録するイベントです。
+     *
+     * [net.minecraft.tag.TagGroupLoader.prepareReload]の最後で呼び出されます。
      */
     @JvmField
     val REGISTER: Event<Register> =
@@ -22,7 +24,9 @@ object RobustumTagEvents {
         }
 
     /**
-     * [net.minecraft.tag.ServerTagManagerHolder.setTagManager]，[net.minecraft.client.network.ClientPlayNetworkHandler.onSynchronizeTags]の最後でそれぞれ呼び出される
+     * [TagManager]がリロードされた時に呼び出されるイベントです。
+     *
+     * [net.minecraft.tag.ServerTagManagerHolder.setTagManager]，[net.minecraft.client.network.ClientPlayNetworkHandler.onSynchronizeTags]の最後でそれぞれ呼び出されます。
      */
     @JvmField
     val RELOAD: Event<Reload> = EventFactory.createArrayBacked(Reload::class.java) { callbacks: Array<out Reload> ->
@@ -38,14 +42,15 @@ object RobustumTagEvents {
     //    Helper    //
 
     /**
+     * 動的なタグの登録を補助するクラスです。
      * @param registry 現在のレジストリ
-     * @param consumer 渡されたタグの[Identifier]とそのエントリ[Tag.Entry]を受け取る
+     * @param consumer 渡されたタグの[Identifier]とそのエントリ[Tag.Entry]を受け取るブロック
      */
     class Helper(private val registry: Registry<*>, private val consumer: BiConsumer<Identifier, Tag.Entry>) {
         /**
+         * [Tag]から[Identifier]を取得して登録します。
          * @param registryKey 登録しようとしているレジストリのキー
-         * @param tag 登録しようとしているタグ，[Tag.Identified]を実装している必要がある
-         * @param values 指定したタグに紐づけようとしている値
+         * @param tag [Tag.Identified]を実装している必要があります。
          */
         fun <T : Any> add(registryKey: RegistryKey<out Registry<T>>, tag: Tag<T>, vararg values: T) {
             val tagId: Identifier = tag.idOrNull ?: return
@@ -53,9 +58,8 @@ object RobustumTagEvents {
         }
 
         /**
+         * [tagId]に[values]を登録します。
          * @param registryKey 登録しようとしているレジストリのキー
-         * @param tagId 登録しようとしているタグの[Identifier]
-         * @param values 指定したタグに紐づけようとしている値
          */
         @Suppress("UNCHECKED_CAST")
         fun <T : Any> add(registryKey: RegistryKey<out Registry<T>>, tagId: Identifier, vararg values: T) {
@@ -71,14 +75,10 @@ object RobustumTagEvents {
 
     //    Reload    //
 
-    /**
-     * @see [net.minecraft.tag.ServerTagManagerHolder.setTagManager]
-     * @see [net.minecraft.client.network.ClientPlayNetworkHandler.onSynchronizeTags]
-     */
     fun interface Reload {
         /**
          * @param manager 各サイドにおける[TagManager]
-         * @param environment 各サイドにおける[EnvType]
+         * @param environment [net.minecraft.tag.ServerTagManagerHolder]では[EnvType.SERVER]，[net.minecraft.client.network.ClientPlayNetworkHandler.onSynchronizeTags]では[EnvType.CLIENT]
          */
         fun onReload(manager: TagManager, environment: EnvType)
     }
