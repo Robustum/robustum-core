@@ -18,7 +18,10 @@
       }
     ]
   },
-  "mixins": [],
+  "accessWidener" : "robustum_core.accesswidener",
+  "mixins": [
+    "robustum_core.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=0.15.0",
     "fabric": "*",
