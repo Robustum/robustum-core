@@ -1,6 +1,17 @@
 package dev.robustum.core.extensions
 
+import com.mojang.serialization.Codec
+import com.mojang.serialization.Dynamic
 import com.mojang.serialization.DynamicOps
+
+/**
+ * 指定された[DynamicOps]を[Codec]に変換します。
+ * @see [dev.robustum.core.codec.RobustumCodecs.ANY]
+ */
+fun <T : Any> DynamicOps<T>.toCodec(): Codec<T> = Codec.PASSTHROUGH.xmap(
+    { dynamic: Dynamic<*> -> dynamic.convert(this).value },
+    { obj: T -> Dynamic(this, obj) },
+)
 
 //    List    //
 
