@@ -2,17 +2,30 @@ package dev.robustum.core.extensions
 
 import com.mojang.datafixers.util.Either
 import com.mojang.datafixers.util.Pair
-import com.mojang.serialization.Codec
-import com.mojang.serialization.DataResult
-import com.mojang.serialization.DynamicOps
-import com.mojang.serialization.MapCodec
+import com.mojang.serialization.*
 import dev.robustum.core.codec.KeyDispatchCodec
 import dev.robustum.core.codec.OptionalCodec
 import net.minecraft.util.collection.DefaultedList
 import java.util.*
 import java.util.function.Function
+import kotlin.jvm.optionals.getOrNull
 
 typealias DataPair<F, S> = Pair<F, S>
+
+//    Encoder    //
+
+/**
+ * 指定された[input]を[B]にキャストしてエンコードします。
+ * @param A [input]のクラス
+ * @param B [A]を継承したクラス
+ * @param T [ops]のクラス
+ * @return [A]を[B]にキャストできなかった場合は[DataResult.error]
+ */
+@Suppress("UNCHECKED_CAST")
+fun <A : Any, B : A, T : Any> Encoder<B>.forceEncode(input: A, ops: DynamicOps<T>, prefix: T): DataResult<T> =
+    (input as? B)?.let { encode(it, ops, prefix) } ?: DataResult.error("Failed to encode!")
+
+//    Decoder    //
 
 //    Codec    //
 
@@ -28,10 +41,34 @@ fun <A : Any> lazyCodec(getter: () -> Codec<A>): Codec<A> = object : Codec<A> {
     override fun <T : Any> decode(ops: DynamicOps<T>, input: T): DataResult<Pair<A, T>> = getter().decode(ops, input)
 }
 
-fun <A : Any> alternativeCodec(first: Codec<A>, second: Codec<A>): Codec<A> = Codec.either(first, second).xmap(
-    { either: Either<A, A> -> either.map(Function.identity(), Function.identity()) },
-    Either<A, A>::left,
-)
+fun <A : Any> anyCodec(vararg child: Codec<out A>): Codec<A> = anyCodec(child.toList())
+
+/**
+ * 指定された[children]のいずれかで変換する[Codec]を返します。
+ */
+fun <A : Any> anyCodec(children: List<Codec<out A>>): Codec<A> = object : Codec<A> {
+    override fun <T : Any> encode(input: A, ops: DynamicOps<T>, prefix: T): DataResult<T> {
+        for (codec: Codec<out A> in children) {
+            runCatching {
+                val result: DataResult<T> = codec.forceEncode(input, ops, prefix)
+                if (result.isSucceeded) {
+                    return result
+                }
+            }
+        }
+        return DataResult.error("Failed to encode input!")
+    }
+
+    override fun <T : Any> decode(ops: DynamicOps<T>, input: T): DataResult<Pair<A, T>> {
+        for (codec: Codec<out A> in children) {
+            val result: DataResult<out Pair<out A, T>> = codec.decode(ops, input)
+            if (result.isSucceeded) {
+                return result.map { pair: Pair<out A, T> -> pair.mapFirst { it as A } }
+            }
+        }
+        return DataResult.error("Failed to decode input!")
+    }
+}
 
 /**
  * 指定された[validator]で検証した[Codec]を返します。
@@ -137,3 +174,25 @@ fun <T : Any> T?.toDataResult(errorMessage: String): DataResult<T> = this?.let(D
 
 fun <R : Any, T : Any> DataResult<R>.mapNotNull(transform: (R) -> T?): DataResult<T> =
     flatMap { result: R -> transform(result).toDataResult("Transformed value was null!") }
+
+/**
+ * 指定された[DataResult]の値を[Optional]に包んで返します。
+ */
+fun <R : Any> DataResult<R>.getOptional(): Optional<R> = get().left()
+
+/**
+ * 指定された[DataResult]の値をnullableな形で返します。
+ */
+fun <R : Any> DataResult<R>.getOrNull(): R? = getOptional().getOrNull()
+
+/**
+ * 指定された[DataResult]の値をnullでない形で返します。
+ * @return [getOrNull]がnullの場合，[defaultValue]から返す
+ */
+fun <R : Any> DataResult<R>.getOrDefault(defaultValue: R): R = getOrNull() ?: defaultValue
+
+/**
+ * 指定された[DataResult]の値をnullでない形で返します。
+ * @return [getOrNull]がnullの場合，[value]から返す
+ */
+fun <R : Any> DataResult<R>.getOrElse(value: () -> R): R = getOrNull() ?: value()
