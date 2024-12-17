@@ -47,6 +47,7 @@ class TestRobustumCodecs {
             .onErrored { it shouldBe "Item must not be minecraft:air" }
     }
 
+    @Test
     fun testItemStack() {
         RobustumCodecs.ITEM_STACK
             .encodeStart(JsonOps.INSTANCE, ItemStack(Items.IRON_INGOT, 4))
