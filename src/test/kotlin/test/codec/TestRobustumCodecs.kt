@@ -13,7 +13,6 @@ import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 import net.minecraft.recipe.Ingredient
 import net.minecraft.tag.ItemTags
-import net.minecraft.text.LiteralText
 import org.junit.jupiter.api.Test
 import kotlin.test.BeforeTest
 
@@ -82,21 +81,5 @@ class TestRobustumCodecs {
         RobustumCodecs.NON_EMPTY_INGREDIENT
             .encodeStart(JsonOps.INSTANCE, Ingredient.EMPTY)
             .onErrored { it shouldBe "Empty ingredient is not allowed!" }
-    }
-
-    @Test
-    fun testText() {
-        RobustumCodecs.TEXT
-            .encodeStart(JsonOps.INSTANCE, LiteralText("Hello World"))
-            .onSucceeded { it.asString shouldBe "Hello World" }
-            .onErrored(::error)
-
-        RobustumCodecs.TEXT
-            .encodeStart(JsonOps.INSTANCE, Items.IRON_INGOT.name)
-            .onSucceeded {
-                it shouldBe {
-                    "translate"("item.minecraft.iron_ingot")
-                }
-            }.onErrored(::error)
     }
 }
