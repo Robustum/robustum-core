@@ -2,9 +2,12 @@ package dev.robustum.core.extensions
 
 import com.mojang.datafixers.util.Either
 import com.mojang.datafixers.util.Pair
-import com.mojang.serialization.*
-import dev.robustum.core.codec.KeyDispatchCodec
+import com.mojang.serialization.Codec
+import com.mojang.serialization.DataResult
+import com.mojang.serialization.DynamicOps
+import com.mojang.serialization.Encoder
 import dev.robustum.core.codec.OptionalCodec
+import net.minecraft.util.StringIdentifiable
 import net.minecraft.util.collection.DefaultedList
 import java.util.*
 import java.util.function.Function
@@ -71,6 +74,14 @@ fun <A : Any> anyCodec(children: List<Codec<out A>>): Codec<A> = object : Codec<
 }
 
 /**
+ * [StringIdentifiable.asString]を元に，指定された[entries]から[Codec]を返します。
+ */
+fun <T : StringIdentifiable> identifiedCodec(entries: Collection<T>): Codec<T> = Codec.STRING.comapFlatMap(
+    { name: String -> entries.firstOrNull { entry: T -> entry.asString() == name }.toDataResult("Unknown entry: $name") },
+    StringIdentifiable::asString,
+)
+
+/**
  * 指定された[validator]で検証した[Codec]を返します。
  * @param A 値のクラス
  * @param validator 値を[DataResult]で評価する。
@@ -78,7 +89,7 @@ fun <A : Any> anyCodec(children: List<Codec<out A>>): Codec<A> = object : Codec<
  */
 fun <A : Any> Codec<A>.validate(validator: (A) -> DataResult<A>): Codec<A> = flatXmap(validator, validator)
 
-fun <A : Any, S : Any> Codec<A>.dispatch(type: Function<S, A>, codec: Function<A, MapCodec<S>>): Codec<S> = dispatch("type", type, codec)
+/*fun <A : Any, S : Any> Codec<A>.dispatch(type: Function<S, A>, codec: Function<A, MapCodec<S>>): Codec<S> = dispatch("type", type, codec)
 
 fun <A : Any, S : Any> Codec<A>.dispatch(typeKey: String, type: Function<S, A>, codec: Function<A, MapCodec<S>>): Codec<S> =
     dispatchPartial(typeKey, type.andThen(DataResult<A>::success), codec.andThen(DataResult<A>::success))
@@ -87,7 +98,7 @@ fun <A : Any, S : Any> Codec<A>.dispatchPartial(
     typeKey: String,
     type: Function<S, DataResult<A>>,
     codec: Function<A, DataResult<MapCodec<S>>>,
-): Codec<S> = KeyDispatchCodec(typeKey, this, type::apply, codec::apply).codec()
+): Codec<S> = KeyDispatchCodec(typeKey, this, type::apply, codec::apply).codec()*/
 
 fun <A : Any> Codec<A>.optionalOf(): Codec<Optional<A>> = OptionalCodec(this)
 

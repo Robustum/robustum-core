@@ -18,6 +18,7 @@ import net.minecraft.nbt.NbtCompound
 import net.minecraft.recipe.Ingredient
 import net.minecraft.tag.Tag
 import net.minecraft.tag.TagGroup
+import net.minecraft.util.DyeColor
 import net.minecraft.util.Identifier
 import net.minecraft.util.registry.Registry
 import java.util.*
@@ -39,6 +40,13 @@ object RobustumCodecs {
             else -> DataResult.success(block)
         }
     }
+
+    //    DyeColor    //
+    /**
+     * [DyeColor]の[Codec]です。
+     */
+    @JvmField
+    val DYE_COLOR: Codec<DyeColor> = identifiedCodec(DyeColor.entries)
 
     //    Fluid    //
     /**
