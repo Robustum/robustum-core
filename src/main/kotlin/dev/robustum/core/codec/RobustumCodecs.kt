@@ -1,6 +1,5 @@
 package dev.robustum.core.codec
 
-import com.mojang.datafixers.util.Either
 import com.mojang.serialization.Codec
 import com.mojang.serialization.DataResult
 import com.mojang.serialization.codecs.RecordCodecBuilder
@@ -19,12 +18,9 @@ import net.minecraft.nbt.NbtCompound
 import net.minecraft.recipe.Ingredient
 import net.minecraft.tag.Tag
 import net.minecraft.tag.TagGroup
-import net.minecraft.text.*
-import net.minecraft.util.DyeColor
 import net.minecraft.util.Identifier
 import net.minecraft.util.registry.Registry
 import java.util.*
-import java.util.function.Function
 
 object RobustumCodecs {
     //    Any    //
@@ -43,13 +39,6 @@ object RobustumCodecs {
             else -> DataResult.success(block)
         }
     }
-
-    //    DyeColor    //
-    /**
-     * [DyeColor]の[Codec]です。
-     */
-    @JvmField
-    val DYE_COLOR: Codec<DyeColor> = identifiedCodec(DyeColor.entries)
 
     //    Fluid    //
     /**
@@ -156,118 +145,5 @@ object RobustumCodecs {
     fun <T : Any> identifiedTagCodec(groupGetter: () -> TagGroup<T>): Codec<Tag<T>> = Identifier.CODEC.flatXmap(
         { groupGetter().getTag(it).toDataResult("Unknown tag: $it") },
         { it.getIdOrNull(groupGetter()).toDataResult("Unknown tag: $it") },
-    )
-
-    //    Text    //
-
-    @JvmField
-    val TEXT: Codec<Text> = lazyCodec {
-        anyCodec(
-            RAW_LITERAL,
-            LITERAL,
-            TRANSLATE,
-            SCORE,
-            SELECTOR,
-            KEY_BIND,
-            NBT_TEXT,
-        )
-    }
-
-    @JvmField
-    val RAW_LITERAL: Codec<LiteralText> = Codec.STRING.xmap(::LiteralText, LiteralText::asString)
-
-    @JvmField
-    val LITERAL: Codec<LiteralText> = RecordCodecBuilder.create { instance ->
-        instance
-            .group(
-                Codec.STRING.fieldOf("text").forGetter(LiteralText::asString),
-            ).apply(instance, ::LiteralText)
-    }
-
-    @JvmStatic
-    private val ARGS: Codec<in Any> = Codec
-        .either(ANY, TEXT)
-        .xmap(
-            { either: Either<in Any, Text> -> either.map(Function.identity(), Text::asString) },
-            { arg: Any -> if (arg is Text) Either.right(arg) else Either.left(arg) },
-        )
-
-    @JvmField
-    val TRANSLATE: Codec<TranslatableText> = RecordCodecBuilder.create { instance ->
-        instance
-            .group(
-                Codec.STRING.fieldOf("translate").forGetter(TranslatableText::getKey),
-                ARGS.listOf().optionalFieldOf("with", listOf()).forGetter { it.args.toList() },
-            ).apply(instance) { key: String, args: List<Any> -> TranslatableText(key, *args.toTypedArray()) }
-    }
-
-    @JvmStatic
-    private val RAW_SCORE: Codec<Pair<String, String>> = RecordCodecBuilder.create { instance ->
-        instance
-            .group(
-                Codec.STRING.fieldOf("name").forGetter(Pair<String, String>::first),
-                Codec.STRING.fieldOf("objective").forGetter(Pair<String, String>::second),
-            ).apply(instance, ::Pair)
-    }
-
-    @JvmField
-    val SCORE: Codec<ScoreText> = RecordCodecBuilder.create { instance ->
-        instance
-            .group(
-                RAW_SCORE.fieldOf("score").forGetter { it.name to it.objective },
-            ).apply(instance) { raw: Pair<String, String> -> ScoreText(raw.first, raw.second) }
-    }
-
-    @JvmField
-    val SELECTOR: Codec<SelectorText> = RecordCodecBuilder.create { instance ->
-        instance
-            .group(
-                Codec.STRING.fieldOf("selector").forGetter(SelectorText::asString),
-            ).apply(instance, ::SelectorText)
-    }
-
-    @JvmField
-    val KEY_BIND: Codec<KeybindText> = RecordCodecBuilder.create { instance ->
-        instance
-            .group(
-                Codec.STRING.fieldOf("keybind").forGetter(KeybindText::getKey),
-            ).apply(instance, ::KeybindText)
-    }
-
-    @JvmStatic
-    private val BLOCK_NBT_TEXT: Codec<NbtText.BlockNbtText> = RecordCodecBuilder.create { instance ->
-        instance
-            .group(
-                Codec.STRING.fieldOf("nbt").forGetter(NbtText.BlockNbtText::getPath),
-                Codec.BOOL.optionalFieldOf("interpret", false).forGetter(NbtText.BlockNbtText::shouldInterpret),
-                Codec.STRING.fieldOf("block").forGetter(NbtText.BlockNbtText::getPos),
-            ).apply(instance, NbtText::BlockNbtText)
-    }
-
-    @JvmStatic
-    private val ENTITY_NBT_TEXT: Codec<NbtText.EntityNbtText> = RecordCodecBuilder.create { instance ->
-        instance
-            .group(
-                Codec.STRING.fieldOf("nbt").forGetter(NbtText.EntityNbtText::getPath),
-                Codec.BOOL.optionalFieldOf("interpret", false).forGetter(NbtText.EntityNbtText::shouldInterpret),
-                Codec.STRING.fieldOf("entity").forGetter(NbtText.EntityNbtText::getSelector),
-            ).apply(instance, NbtText::EntityNbtText)
-    }
-
-    @JvmStatic
-    private val STORAGE_NBT_TEXT: Codec<NbtText.StorageNbtText> = RecordCodecBuilder.create { instance ->
-        instance
-            .group(
-                Codec.STRING.fieldOf("nbt").forGetter(NbtText.StorageNbtText::getPath),
-                Codec.BOOL.optionalFieldOf("interpret", false).forGetter(NbtText.StorageNbtText::shouldInterpret),
-                Identifier.CODEC.fieldOf("storage").forGetter(NbtText.StorageNbtText::getId),
-            ).apply(instance, NbtText::StorageNbtText)
-    }
-
-    @JvmField
-    val NBT_TEXT: Codec<NbtText> = anyCodec(
-        BLOCK_NBT_TEXT,
-        ENTITY_NBT_TEXT,
-        STORAGE_NBT_TEXT,
     )
 }
