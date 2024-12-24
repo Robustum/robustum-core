@@ -9,6 +9,8 @@ import dev.robustum.core.recipe.ItemIngredient
 import dev.robustum.core.registry.RegistryEntryList
 import net.minecraft.block.Block
 import net.minecraft.block.Blocks
+import net.minecraft.fluid.Fluid
+import net.minecraft.fluid.Fluids
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
@@ -28,7 +30,7 @@ object RobustumCodecs {
 
     //    Block    //
     /**
-     * [net.minecraft.block.Blocks.AIR]を受け付けない[net.minecraft.block.Block]の[com.mojang.serialization.Codec]です。
+     * [Blocks.AIR]を受け付けない[Block]の[Codec]です。
      */
     @JvmField
     val BLOCK: Codec<Block> = lazyCodec { Registry.BLOCK }.validate { block: Block ->
@@ -38,9 +40,21 @@ object RobustumCodecs {
         }
     }
 
+    //    Fluid    //
+    /**
+     * [Fluids.EMPTY]を受け付けない[Fluid]の[Codec]です。
+     */
+    @JvmField
+    val FLUID: Codec<Fluid> = lazyCodec { Registry.FLUID }.validate { fluid: Fluid ->
+        when (fluid) {
+            Fluids.EMPTY -> DataResult.error("Fluid must not be minecraft:empty")
+            else -> DataResult.success(fluid)
+        }
+    }
+
     //    ItemStack    //
     /**
-     * [net.minecraft.item.Items.AIR]を受け付けない[net.minecraft.item.Item]の[Codec]です。
+     * [Items.AIR]を受け付けない[Item]の[Codec]です。
      */
     @JvmField
     val ITEM: Codec<Item> = lazyCodec { Registry.ITEM }.validate { item: Item ->
