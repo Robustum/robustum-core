@@ -11,5 +11,3 @@ sealed interface IdentifiedEntry<T : Any> {
     val id: Identifier
     val value: T
 }
-
-internal data class IdentifiedEntryImpl<T : Any>(override val id: Identifier, override val value: T) : IdentifiedEntry<T>
