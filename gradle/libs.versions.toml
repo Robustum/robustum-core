@@ -33,5 +33,5 @@ kotest = [ "kotest-runner-junit5", "kotest-assersions-core" ]
 
 [plugins]
 fabric-loom = { id = "fabric-loom", version.ref = "fabric-loom" }
-ktlint = { id = "org.jlleitschuh.gradle.ktlint", version = "12.1.2"}
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version = "12.3.0"}
 
