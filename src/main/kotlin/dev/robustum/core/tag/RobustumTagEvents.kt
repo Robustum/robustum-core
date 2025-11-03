@@ -4,7 +4,10 @@ import dev.robustum.core.extensions.idOrNull
 import net.fabricmc.api.EnvType
 import net.fabricmc.fabric.api.event.Event
 import net.fabricmc.fabric.api.event.EventFactory
+import net.minecraft.client.network.ClientPlayNetworkHandler
+import net.minecraft.tag.ServerTagManagerHolder
 import net.minecraft.tag.Tag
+import net.minecraft.tag.TagGroupLoader
 import net.minecraft.tag.TagManager
 import net.minecraft.util.Identifier
 import net.minecraft.util.registry.Registry
@@ -15,7 +18,7 @@ object RobustumTagEvents {
     /**
      * 動的に[Tag]を登録するイベントです。
      *
-     * [net.minecraft.tag.TagGroupLoader.prepareReload]の最後で呼び出されます。
+     * [TagGroupLoader.prepareReload]の最後で呼び出されます。
      */
     @JvmField
     val REGISTER: Event<Register> =
@@ -26,7 +29,7 @@ object RobustumTagEvents {
     /**
      * [TagManager]がリロードされた時に呼び出されるイベントです。
      *
-     * [net.minecraft.tag.ServerTagManagerHolder.setTagManager]，[net.minecraft.client.network.ClientPlayNetworkHandler.onSynchronizeTags]の最後でそれぞれ呼び出されます。
+     * [ServerTagManagerHolder.setTagManager]，[ClientPlayNetworkHandler.onSynchronizeTags]の最後でそれぞれ呼び出されます。
      */
     @JvmField
     val RELOAD: Event<Reload> = EventFactory.createArrayBacked(Reload::class.java) { callbacks: Array<out Reload> ->
@@ -78,7 +81,7 @@ object RobustumTagEvents {
     fun interface Reload {
         /**
          * @param manager 各サイドにおける[TagManager]
-         * @param environment [net.minecraft.tag.ServerTagManagerHolder]では[EnvType.SERVER]，[net.minecraft.client.network.ClientPlayNetworkHandler.onSynchronizeTags]では[EnvType.CLIENT]
+         * @param environment [ServerTagManagerHolder]では[EnvType.SERVER]，[ClientPlayNetworkHandler.onSynchronizeTags]では[EnvType.CLIENT]
          */
         fun onReload(manager: TagManager, environment: EnvType)
     }
