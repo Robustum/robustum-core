@@ -10,7 +10,7 @@ base {
     archivesName = "test-agent"
 }
 
-val agentJar = configurations.create("agentJar") {
+val agentJar = configurations.register("agentJar") {
     isCanBeConsumed = true
     isCanBeResolved = false
 }
@@ -58,7 +58,7 @@ tasks {
     // fabric-loomに対するパッチのオリジナルはLGPL-3.0ライセンスなのでリスクを回避するために必要に応じてダウンロードする
     // https://github.com/embeddedt/ModernFix?tab=License-1-ov-file#readme
     // https://github.com/embeddedt/ModernFix/commit/03b23957827c42d5df5a11f3d07f807c5343e87e#diff-bb0eb72bce858352a965127feb642536626f7b5bc911482becf330cb173672f4
-    val downloadCodes = create("downloadCodes") {
+    val downloadCodes = register("downloadCodes") {
         doFirst {
             val projectDir = file("src/main/java/org/embeddedt/modernfix/testing")
             projectDir.mkdirs()
