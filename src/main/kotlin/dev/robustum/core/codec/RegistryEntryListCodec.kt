@@ -21,17 +21,17 @@ import org.apache.logging.log4j.Logger
 class RegistryEntryListCodec<A : Any>(private val lookup: RegistryLookup<A>) : Codec<RegistryEntryList<A>> {
     companion object {
         @JvmField
-        val BLOCK: RegistryEntryListCodec<Block> = RegistryEntryListCodec(RegistryLookup.Companion.BLOCK)
+        val BLOCK: RegistryEntryListCodec<Block> = RegistryEntryListCodec(RegistryLookup.BLOCK)
 
         @JvmField
-        val FLUID: RegistryEntryListCodec<Fluid> = RegistryEntryListCodec(RegistryLookup.Companion.FLUID)
+        val FLUID: RegistryEntryListCodec<Fluid> = RegistryEntryListCodec(RegistryLookup.FLUID)
 
         @JvmField
         val ENTITY_TYPE: RegistryEntryListCodec<EntityType<*>> =
-            RegistryEntryListCodec(RegistryLookup.Companion.ENTITY_TYPE)
+            RegistryEntryListCodec(RegistryLookup.ENTITY_TYPE)
 
         @JvmField
-        val ITEM: RegistryEntryListCodec<Item> = RegistryEntryListCodec(RegistryLookup.Companion.ITEM)
+        val ITEM: RegistryEntryListCodec<Item> = RegistryEntryListCodec(RegistryLookup.ITEM)
 
         private val logger: Logger = LogManager.getLogger(RegistryEntryListCodec::class.java)
     }

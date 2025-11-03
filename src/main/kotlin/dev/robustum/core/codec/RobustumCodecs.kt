@@ -115,8 +115,7 @@ object RobustumCodecs {
         } else {
             val entries: Array<out Ingredient.Entry> = (ingredient as IngredientAccessor).entries
             if (entries.size == 1) {
-                val entry: Ingredient.Entry = entries[0]
-                when (entry) {
+                when (val entry: Ingredient.Entry = entries[0]) {
                     is Ingredient.StackEntry -> RegistryEntryList.direct(entry.stacks.first().item)
                     is Ingredient.TagEntry -> RegistryEntryList.ofTag(entry.tag)
                     else -> empty
