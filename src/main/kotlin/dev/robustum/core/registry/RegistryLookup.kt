@@ -105,4 +105,6 @@ interface RegistryLookup<T : Any> {
                 ?: DataResult.error("Unknown tag: $tag")
         }
     }
+
+    private data class IdentifiedEntryImpl<T : Any>(override val id: Identifier, override val value: T) : IdentifiedEntry<T>
 }
