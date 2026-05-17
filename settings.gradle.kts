@@ -8,7 +8,7 @@ pluginManagement {
 }
 buildscript {
     dependencies {
-        classpath("com.google.code.gson:gson:2.13.2")
+        classpath("com.google.code.gson:gson:2.14.0")
     }
 }
 plugins {
