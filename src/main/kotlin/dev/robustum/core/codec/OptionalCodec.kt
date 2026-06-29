@@ -6,6 +6,7 @@ import com.mojang.serialization.DataResult
 import com.mojang.serialization.DynamicOps
 import com.mojang.serialization.MapLike
 import java.util.*
+import kotlin.jvm.optionals.getOrElse
 
 class OptionalCodec<A : Any>(val codec: Codec<A>) : Codec<Optional<A>> {
     override fun <T : Any> encode(input: Optional<A>, ops: DynamicOps<T>, prefix: T): DataResult<T> = when (input.isEmpty) {
@@ -17,7 +18,7 @@ class OptionalCodec<A : Any>(val codec: Codec<A>) : Codec<Optional<A>> {
         .getMap(input)
         .result()
         .map { mapLike: MapLike<T> -> mapLike.entries().findAny().isEmpty }
-        .orElse(false)
+        .getOrElse { false }
 
     override fun <T : Any> decode(ops: DynamicOps<T>, input: T): DataResult<Pair<Optional<A>, T>> = when {
         isEmpty(ops, input) -> DataResult.success(Pair.of(Optional.empty(), input))

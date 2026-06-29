@@ -10,7 +10,7 @@ import kotlin.random.Random
  * [T]値の[List]または[Tag]を持つオブジェクトです。
  */
 
-sealed interface RegistryEntryList<out T: Any> : Iterable<T> {
+sealed interface RegistryEntryList<out T : Any> : Iterable<T> {
     companion object {
         /**
          * 空の[RegistryEntryList]を返します。

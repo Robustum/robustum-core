@@ -13,7 +13,7 @@ import net.minecraft.util.registry.Registry
 object RobustumRecipeSerializers {
     @JvmStatic
     fun init() {}
-    
+
     @JvmField
     val SHAPELESS: DelegatedRecipeSerializer<ShapelessRecipe> =
         registerDelegated(
