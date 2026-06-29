@@ -38,7 +38,7 @@ class RegistryEntryListCodec<A : Any>(private val lookup: RegistryLookup<A>) : C
 
     private val entryCodec: Codec<Either<TagEntryId, List<TagEntryId>>> = TagEntryId.CODEC.entryOrList()
 
-    override fun <T : Any> encode(input: RegistryEntryList<A>, ops: DynamicOps<T>, prefix: T): DataResult<T> = input.storage.map(
+    override fun <T : Any> encode(input: RegistryEntryList<A>, ops: DynamicOps<T>, prefix: T): DataResult<T> = input.unwrap().map(
         { tag: Tag<A> -> lookup.getId(tag).map(TagEntryId::asString).map(ops::createString) },
         { entries: List<A> ->
             when (entries.size) {

@@ -25,9 +25,7 @@ class DelegatedRecipeSerializer<T : Recipe<*>>(private val delegated: RecipeSeri
             .group(
                 Registry.RECIPE_SERIALIZER.fieldOf("type").forGetter { this },
                 recipeCodec.createCodec(id).forGetter { it },
-            ).apply(instance) { type: RecipeSerializer<*>, recipe: T ->
-                recipe
-            }
+            ).apply(instance) { _: RecipeSerializer<*>, recipe: T -> recipe }
     }
 
     override fun read(id: Identifier, json: JsonObject): T = createCodec(id)

@@ -49,7 +49,7 @@ class ItemIngredient(val entryList: RegistryEntryList<Item>, val count: Int = 1)
     val vanillaIngredient: Ingredient
         get() = when (isEmpty) {
             true -> Ingredient.EMPTY
-            false -> entryList.storage.map(Ingredient::fromTag) { items: List<Item> ->
+            false -> entryList.unwrap().map(Ingredient::fromTag) { items: List<Item> ->
                 items.map(::ItemStack).stream().let(Ingredient::ofStacks)
             }
         }
