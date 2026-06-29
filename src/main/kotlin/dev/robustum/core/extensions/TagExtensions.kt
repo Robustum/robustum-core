@@ -20,8 +20,7 @@ import net.minecraft.util.Identifier
  *
  * [Tag]が[Tag.Identified]を実装していない場合はnullを返します。
  */
-val <T : Any> Tag<T>.idOrNull: Identifier?
-    get() = (this as? Tag.Identified<T>)?.id
+val <T : Any> Tag<T>.idOrNull: Identifier? get() = (this as? Tag.Identified<T>)?.id
 
 /**
  * 指定された[Tag]と[tagGroup]から[Identifier]を取得します。
