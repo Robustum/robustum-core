@@ -62,7 +62,6 @@ class KeyDispatchCodec<K : Any, V : Any>(
         val encodeResult: DataResult<out MapEncoder<V>> = encoder(input)
         val builder: RecordBuilder<T> = prefix.withErrorsFrom(encodeResult)
         if (encodeResult.isErrored) {
-            Result
             return builder
         }
         val elementEncoder: MapEncoder<V> = encodeResult.result().get()

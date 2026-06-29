@@ -16,7 +16,7 @@ object RobustumCore : ModInitializer {
     private val logger: Logger = LogManager.getLogger(RobustumCore::class.java)
 
     override fun onInitialize() {
-        RobustumRecipeSerializers
+        RobustumRecipeSerializers.init()
 
         logger.info("Robustum Core is loaded!")
     }

@@ -10,13 +10,13 @@ import kotlin.random.Random
  * [T]値の[List]または[Tag]を持つオブジェクトです。
  */
 
-sealed interface RegistryEntryList<T : Any> : Iterable<T> {
+sealed interface RegistryEntryList<out T: Any> : Iterable<T> {
     companion object {
         /**
          * 空の[RegistryEntryList]を返します。
          */
         @JvmStatic
-        fun <T : Any> empty(): RegistryEntryList<T> = Empty()
+        fun <T : Any> empty(): RegistryEntryList<T> = Empty
 
         /**
          * [value]を持つ[RegistryEntryList]を返します。
@@ -46,7 +46,7 @@ sealed interface RegistryEntryList<T : Any> : Iterable<T> {
     /**
      * [Tag]または[List]を持つ[Either]を返します。
      */
-    val storage: Either<Tag<T>, List<T>>
+    fun unwrap(): Either<Tag<@UnsafeVariance T>, List<@UnsafeVariance T>>
 
     /**
      * この[RegistryEntryList]の要素が空か判定します。
@@ -64,7 +64,7 @@ sealed interface RegistryEntryList<T : Any> : Iterable<T> {
      * この[RegistryEntryList]の要素のリストを返します。
      */
     val entries: List<T>
-        get() = storage.map(Tag<T>::getSafeValue, Function.identity())
+        get() = unwrap().map(Tag<T>::getSafeValue, Function.identity())
 
     /**
      * この[RegistryEntryList]からランダムな要素を返します。
@@ -79,19 +79,21 @@ sealed interface RegistryEntryList<T : Any> : Iterable<T> {
     /**
      * 指定された要素[entry]が含まれるか判定します。
      */
-    operator fun contains(entry: T): Boolean = entries.contains(entry)
+    operator fun contains(entry: @UnsafeVariance T): Boolean = entries.contains(entry)
 
     override fun iterator(): Iterator<T> = entries.iterator()
 
-    private class Empty<T : Any> : RegistryEntryList<T> {
-        override val storage: Either<Tag<T>, List<T>> = Either.right(listOf())
+    private data object Empty : RegistryEntryList<Nothing> {
+        override fun unwrap(): Either<Tag<Nothing>, List<Nothing>> = Either.right(listOf())
     }
 
-    private class Direct<T : Any>(values: List<T>) : RegistryEntryList<T> {
-        override val storage: Either<Tag<T>, List<T>> = Either.right(values)
+    @JvmInline
+    value class Direct<out T : Any>(private val values: List<T>) : RegistryEntryList<T> {
+        override fun unwrap(): Either<Tag<@UnsafeVariance T>, List<@UnsafeVariance T>> = Either.right(values)
     }
 
-    private class Tagged<T : Any>(tag: Tag<T>) : RegistryEntryList<T> {
-        override val storage: Either<Tag<T>, List<T>> = Either.left(tag)
+    @JvmInline
+    value class Tagged<out T : Any>(private val tag: Tag<T>) : RegistryEntryList<T> {
+        override fun unwrap(): Either<Tag<@UnsafeVariance T>, List<@UnsafeVariance T>> = Either.left(tag)
     }
 }

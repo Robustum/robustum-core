@@ -11,13 +11,16 @@ import net.minecraft.util.Identifier
 import net.minecraft.util.registry.Registry
 
 object RobustumRecipeSerializers {
+    @JvmStatic
+    fun init() {}
+    
     @JvmField
     val SHAPELESS: DelegatedRecipeSerializer<ShapelessRecipe> =
         registerDelegated(
             "shapeless",
             RecipeSerializer.SHAPELESS,
         ) { id: Identifier ->
-            RecordCodecBuilder.mapCodec<ShapelessRecipe> { instance ->
+            RecordCodecBuilder.mapCodec { instance ->
                 instance
                     .group(
                         Codec.STRING
@@ -73,7 +76,7 @@ object RobustumRecipeSerializers {
         "stonecutting",
         RecipeSerializer.STONECUTTING,
     ) { id: Identifier ->
-        RecordCodecBuilder.mapCodec<StonecuttingRecipe> { instance ->
+        RecordCodecBuilder.mapCodec { instance ->
             instance
                 .group(
                     Codec.STRING
@@ -94,7 +97,7 @@ object RobustumRecipeSerializers {
     @JvmStatic
     private fun <T : AbstractCookingRecipe> createCookingRecipe(
         factory: (Identifier, String, Ingredient, ItemStack, Float, Int) -> T,
-    ): RecipeCodec<T> = RecipeCodec<T> { id: Identifier ->
+    ): RecipeCodec<T> = RecipeCodec { id: Identifier ->
         RecordCodecBuilder.mapCodec<T> { instance ->
             instance
                 .group(
