@@ -1,9 +1,9 @@
 package dev.robustum.core.registry
 
-import com.mojang.datafixers.util.Either
 import dev.robustum.core.extensions.getSafeValue
+import dev.robustum.core.util.Either
+import dev.robustum.core.util.identity
 import net.minecraft.tag.Tag
-import java.util.function.Function
 import kotlin.random.Random
 
 /**
@@ -51,20 +51,17 @@ sealed interface RegistryEntryList<out T : Any> : Iterable<T> {
     /**
      * この[RegistryEntryList]の要素が空か判定します。
      */
-    val isEmpty: Boolean
-        get() = entries.isEmpty()
+    val isEmpty: Boolean get() = entries.isEmpty()
 
     /**
      * この[RegistryEntryList]の要素の個数を返します。
      */
-    val size: Int
-        get() = entries.size
+    val size: Int get() = entries.size
 
     /**
      * この[RegistryEntryList]の要素のリストを返します。
      */
-    val entries: List<T>
-        get() = unwrap().map(Tag<T>::getSafeValue, Function.identity())
+    val entries: List<T> get() = unwrap().fold(Tag<T>::getSafeValue, identity())
 
     /**
      * この[RegistryEntryList]からランダムな要素を返します。
@@ -84,16 +81,16 @@ sealed interface RegistryEntryList<out T : Any> : Iterable<T> {
     override fun iterator(): Iterator<T> = entries.iterator()
 
     private data object Empty : RegistryEntryList<Nothing> {
-        override fun unwrap(): Either<Tag<Nothing>, List<Nothing>> = Either.right(listOf())
+        override fun unwrap(): Either<Tag<Nothing>, List<Nothing>> = Either.Right(listOf())
     }
 
     @JvmInline
     value class Direct<out T : Any>(private val values: List<T>) : RegistryEntryList<T> {
-        override fun unwrap(): Either<Tag<@UnsafeVariance T>, List<@UnsafeVariance T>> = Either.right(values)
+        override fun unwrap(): Either<Tag<@UnsafeVariance T>, List<@UnsafeVariance T>> = Either.Right(values)
     }
 
     @JvmInline
     value class Tagged<out T : Any>(private val tag: Tag<T>) : RegistryEntryList<T> {
-        override fun unwrap(): Either<Tag<@UnsafeVariance T>, List<@UnsafeVariance T>> = Either.left(tag)
+        override fun unwrap(): Either<Tag<@UnsafeVariance T>, List<@UnsafeVariance T>> = Either.Left(tag)
     }
 }

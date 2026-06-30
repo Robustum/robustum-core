@@ -1,14 +1,13 @@
 package dev.robustum.core.text
 
 import com.mojang.serialization.Codec
-import com.mojang.serialization.codecs.RecordCodecBuilder
-import dev.robustum.core.extensions.anyCodec
+import dev.robustum.core.codec.RobustumCodecs
 import net.minecraft.text.NbtText
 import net.minecraft.util.Identifier
 
 object NbtTextSerializer : TextSerializer<NbtText> {
     @JvmField
-    val BLOCK: Codec<NbtText.BlockNbtText> = RecordCodecBuilder.create { instance ->
+    val BLOCK: Codec<NbtText.BlockNbtText> = RobustumCodecs.record { instance ->
         instance
             .group(
                 Codec.STRING.fieldOf("nbt").forGetter(NbtText.BlockNbtText::getPath),
@@ -18,7 +17,7 @@ object NbtTextSerializer : TextSerializer<NbtText> {
     }
 
     @JvmField
-    val ENTITY: Codec<NbtText.EntityNbtText> = RecordCodecBuilder.create { instance ->
+    val ENTITY: Codec<NbtText.EntityNbtText> = RobustumCodecs.record { instance ->
         instance
             .group(
                 Codec.STRING.fieldOf("nbt").forGetter(NbtText.EntityNbtText::getPath),
@@ -28,7 +27,7 @@ object NbtTextSerializer : TextSerializer<NbtText> {
     }
 
     @JvmField
-    val STORAGE: Codec<NbtText.StorageNbtText> = RecordCodecBuilder.create { instance ->
+    val STORAGE: Codec<NbtText.StorageNbtText> = RobustumCodecs.record { instance ->
         instance
             .group(
                 Codec.STRING.fieldOf("nbt").forGetter(NbtText.StorageNbtText::getPath),

@@ -1,12 +1,31 @@
+@file:OptIn(ExperimentalContracts::class)
+
 package dev.robustum.core.codec
 
+import com.mojang.datafixers.kinds.App
 import com.mojang.serialization.Codec
 import com.mojang.serialization.DataResult
+import com.mojang.serialization.DynamicOps
+import com.mojang.serialization.MapCodec
+import com.mojang.serialization.MapLike
+import com.mojang.serialization.RecordBuilder
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import dev.robustum.core.extensions.*
+import dev.robustum.core.extensions.convert
+import dev.robustum.core.extensions.filterNot
+import dev.robustum.core.extensions.getIdOrNull
+import dev.robustum.core.extensions.isSucceeded
+import dev.robustum.core.extensions.toCodec
+import dev.robustum.core.extensions.validate
 import dev.robustum.core.mixin.codec.IngredientAccessor
 import dev.robustum.core.recipe.ItemIngredient
 import dev.robustum.core.registry.RegistryEntryList
+import dev.robustum.core.util.DFUPair
+import dev.robustum.core.util.Either
+import dev.robustum.core.util.Ior
+import dev.robustum.core.util.Option
+import dev.robustum.core.util.getOrElse
+import dev.robustum.core.util.kotlin
+import dev.robustum.core.util.some
 import net.minecraft.block.Block
 import net.minecraft.block.Blocks
 import net.minecraft.fluid.Fluid
@@ -21,20 +40,242 @@ import net.minecraft.tag.TagGroup
 import net.minecraft.util.DyeColor
 import net.minecraft.util.Identifier
 import net.minecraft.util.registry.Registry
-import java.util.*
+import java.util.stream.Stream
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
+import kotlin.enums.enumEntries
 
-object RobustumCodecs {
-    //    Any    //
-
+data object RobustumCodecs {
     @JvmField
     val ANY: Codec<Any> = KotlinOps.toCodec()
+
+    /**
+     * [Map]の[Codec]を作成します。
+     * @param K キーとなるクラス
+     * @param V 値となるクラス
+     * @param keyCodec キーの[Codec]
+     * @param valueCodec 値の[Codec]
+     */
+    @JvmStatic
+    fun <K : Any, V : Any> mapOf(keyCodec: Codec<K>, valueCodec: Codec<V>): Codec<Map<K, V>> = Codec.unboundedMap(keyCodec, valueCodec)
+
+    /**
+     * [Option]でラップされた[Codec]を作成します。
+     */
+    @JvmStatic
+    fun <A : Any> option(codec: Codec<A>): Codec<Option<A>> = OptionCodec(codec)
+
+    @JvmInline
+    private value class OptionCodec<A : Any>(private val codec: Codec<A>) : Codec<Option<A>> {
+        override fun <T> encode(input: Option<A>, ops: DynamicOps<T>, prefix: T): DataResult<T> = input.fold(
+            { DataResult.success(ops.emptyMap()) },
+            { codec.encode(it, ops, prefix) },
+        )
+
+        private fun <T> isEmptyMap(ops: DynamicOps<T>, input: T): Boolean = ops.getMap(input).result().kotlin.fold(
+            { false },
+            { it.entries().findAny().isEmpty },
+        )
+
+        override fun <T> decode(ops: DynamicOps<T>, input: T): DataResult<DFUPair<Option<A>, T>> = when {
+            isEmptyMap(ops, input) -> DataResult.success(DFUPair.of(Option.none(), input))
+            else -> codec.decode(ops, input).map { pair: DFUPair<A, T> -> pair.mapFirst { it.some() } }
+        }
+    }
+
+    /**
+     * [Either]の[Codec]を作成します。
+     * @param A 左側の値となるクラス
+     * @param B 右側の値となるクラス
+     * @param left 左側の値の[Codec]
+     * @param right 右側の値の[Codec]
+     * @see Codec.either
+     */
+    @JvmStatic
+    fun <A, B> either(left: Codec<A>, right: Codec<B>): Codec<Either<A, B>> = HTEitherCodec(left, right, false)
+
+    /**
+     * [Either]の[Codec]を作成します。
+     * @param A 左側の値となるクラス
+     * @param B 右側の値となるクラス
+     * @param left 左側の値の[Codec]
+     * @param right 右側の値の[Codec]
+     * @see Codec.xor
+     */
+    @JvmStatic
+    fun <A, B> xor(left: Codec<A>, right: Codec<B>): Codec<Either<A, B>> = HTEitherCodec(left, right, true)
+
+    /**
+     * @see com.mojang.serialization.codecs.EitherCodec
+     * @see com.mojang.serialization.codecs.XorCodec
+     */
+    private class HTEitherCodec<A, B>(val left: Codec<A>, val right: Codec<B>, val isStrict: Boolean) : Codec<Either<A, B>> {
+        override fun <T : Any> encode(input: Either<A, B>, ops: DynamicOps<T>, prefix: T): DataResult<T> = input.fold(
+            { left.encode(it, ops, prefix) },
+            { right.encode(it, ops, prefix) },
+        )
+
+        override fun <T : Any> decode(ops: DynamicOps<T>, input: T): DataResult<DFUPair<Either<A, B>, T>> {
+            val leftRead: DataResult<DFUPair<Either<A, B>, T>> = left.decode(ops, input).map { it.mapFirst { Either.Left(it) } }
+            val rightRead: DataResult<DFUPair<Either<A, B>, T>> = right.decode(ops, input).map { it.mapFirst { Either.Right(it) } }
+            val leftResult: Option<DFUPair<Either<A, B>, T>> = leftRead.result().kotlin
+            val rightResult: Option<DFUPair<Either<A, B>, T>> = rightRead.result().kotlin
+            if (isStrict && (leftResult.isSome() && rightResult.isSome())) {
+                return DataResult.error(
+                    "Both alternatives read successfully, can not pick the correct one; first: ${leftResult.getOrNull()} second: ${rightResult.getOrNull()}",
+                    leftResult.getOrNull(),
+                )
+            }
+            if (leftResult.isSome()) {
+                return leftRead
+            }
+            if (rightResult.isSome()) {
+                return rightRead
+            }
+            return leftRead.apply2({ _, second -> second }, rightRead)
+        }
+    }
+
+    /**
+     * [Ior]の[MapCodec]を作成します。
+     * @param A 左側の値となるクラス
+     * @param B 右側の値となるクラス
+     * @param left 左側の値の[MapCodec]
+     * @param right 右側の値の[MapCodec]
+     */
+    @JvmStatic
+    fun <A, B> ior(left: MapCodec<A>, right: MapCodec<B>): MapCodec<Ior<A, B>> = HTIorMapCodec(left, right)
+
+    private class HTIorMapCodec<A, B>(val left: MapCodec<A>, val right: MapCodec<B>) : MapCodec<Ior<A, B>>() {
+        override fun <T : Any> keys(ops: DynamicOps<T>): Stream<T> = Stream.concat(left.keys(ops), right.keys(ops))
+
+        override fun <T : Any> decode(ops: DynamicOps<T>, input: MapLike<T>): DataResult<Ior<A, B>> {
+            val leftResult: DataResult<A> = left.decode(ops, input)
+            val rightResult: DataResult<B> = right.decode(ops, input)
+
+            val bothResult: DataResult<Ior<A, B>> = leftResult.flatMap { leftIn: A ->
+                rightResult.map { rightIn: B -> Ior.Both(leftIn, rightIn) }
+            }
+            if (bothResult.isSucceeded) return bothResult
+            if (leftResult.isSucceeded) {
+                return when {
+                    rightResult.isSucceeded ->
+                        leftResult.flatMap { leftIn: A ->
+                            rightResult.map { rightIn: B -> Ior.Both(leftIn, rightIn) }
+                        }
+                    else -> leftResult.map { Ior.Left(it) }
+                }
+            } else {
+                return when {
+                    rightResult.isSucceeded -> rightResult.map { Ior.Right(it) }
+                    else -> run {
+                        val leftError: String = leftResult.error().orElseThrow().message()
+                        val rightError: String = rightResult.error().orElseThrow().message()
+                        DataResult.error("Failed to parse ior. Left: $leftError; Right: $rightError;")
+                    }
+                }
+            }
+        }
+
+        override fun <T : Any> encode(input: Ior<A, B>, ops: DynamicOps<T>, prefix: RecordBuilder<T>): RecordBuilder<T> = input.fold(
+            { left.encode(it, ops, prefix) },
+            { right.encode(it, ops, prefix) },
+            { left: A, right: B ->
+                this.left.encode(left, ops, prefix)
+                this.right.encode(right, ops, prefix)
+            },
+        )
+    }
+
+    /**
+     * [Enum]の[Codec]を返します。
+     * @param V [Enum]を継承したクラス
+     * @param factory [V]を[String]に変換するブロック
+     */
+    @JvmStatic
+    inline fun <reified V : Enum<V>> stringEnum(crossinline factory: (V) -> String?): Codec<V> = Codec.STRING.flatXmap<V>(
+        { name: String ->
+            enumEntries<V>().firstOrNull { factory(it) == name }?.let { DataResult.success(it) }
+                ?: DataResult.error("Unknown element name: $name")
+        },
+        { value: V -> factory(value)?.let { DataResult.success(it) } ?: DataResult.error("Element with unknown name: $value") },
+    )
+
+    /**
+     * [RecordCodecBuilder.mapCodec]を最適化した代替
+     */
+    @JvmStatic
+    inline fun <O> recordMap(builder: (RecordCodecBuilder.Instance<O>) -> App<RecordCodecBuilder.Mu<O>, O>): MapCodec<O> {
+        contract {
+            callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
+        }
+        return RecordCodecBuilder.build(builder(RecordCodecBuilder.instance()))
+    }
+
+    /**
+     * [RecordCodecBuilder.create]を最適化した代替
+     */
+    @JvmStatic
+    inline fun <O> record(builder: (RecordCodecBuilder.Instance<O>) -> App<RecordCodecBuilder.Mu<O>, O>): Codec<O> {
+        contract {
+            callsInPlace(builder, InvocationKind.EXACTLY_ONCE)
+        }
+        return recordMap(builder).codec()
+    }
+
+    fun <A> lazy(delegate: () -> Codec<A>): Codec<A> = object : Codec<A> {
+        override fun <T : Any> encode(input: A, ops: DynamicOps<T>, prefix: T): DataResult<T> = delegate().encode(input, ops, prefix)
+
+        override fun <T : Any> decode(ops: DynamicOps<T>, input: T): DataResult<DFUPair<A, T>> = delegate().decode(ops, input)
+    }
+
+    //    Ranged    //
+
+    /**
+     * [ClosedRange]で値の範囲を制限した[Codec]を作成します。
+     * @param T [Comparable]を実装したクラス
+     * @param codec 元となる[Codec]
+     * @param range 値の範囲
+     */
+    @JvmStatic
+    fun <T : Comparable<T>> ranged(codec: Codec<T>, range: ClosedRange<T>): Codec<T> = codec.validate { number: T ->
+        when (number) {
+            in range -> DataResult.success(number)
+            else -> DataResult.error("Value must be within range $range: $number")
+        }
+    }
+
+    /**
+     * `0`以上の値を対象とする[Int]の[Codec]
+     */
+    @JvmField
+    val NON_NEGATIVE_INT: Codec<Int> = ranged(Codec.INT, 0..Int.MAX_VALUE)
+
+    /**
+     * `0`以上の値を対象とする[Long]の[Codec]
+     */
+    @JvmField
+    val NON_NEGATIVE_LONG: Codec<Long> = ranged(Codec.LONG, 0..Long.MAX_VALUE)
+
+    /**
+     * `1`以上の値を対象とする[Int]の[Codec]
+     */
+    @JvmField
+    val POSITIVE_INT: Codec<Int> = ranged(Codec.INT, 1..Int.MAX_VALUE)
+
+    /**
+     * `1`以上の値を対象とする[Long]の[Codec]
+     */
+    @JvmField
+    val POSITIVE_LONG: Codec<Long> = ranged(Codec.LONG, 1..Long.MAX_VALUE)
 
     //    Block    //
     /**
      * [Blocks.AIR]を受け付けない[Block]の[Codec]です。
      */
     @JvmField
-    val BLOCK: Codec<Block> = lazyCodec { Registry.BLOCK }.validate { block: Block ->
+    val BLOCK: Codec<Block> = lazy { Registry.BLOCK }.validate { block: Block ->
         when (block) {
             Blocks.AIR -> DataResult.error("Block must not be minecraft:air")
             else -> DataResult.success(block)
@@ -46,14 +287,14 @@ object RobustumCodecs {
      * [DyeColor]の[Codec]です。
      */
     @JvmField
-    val DYE_COLOR: Codec<DyeColor> = identifiedCodec(DyeColor.entries)
+    val DYE_COLOR: Codec<DyeColor> = stringEnum(DyeColor::asString)
 
     //    Fluid    //
     /**
      * [Fluids.EMPTY]を受け付けない[Fluid]の[Codec]です。
      */
     @JvmField
-    val FLUID: Codec<Fluid> = lazyCodec { Registry.FLUID }.validate { fluid: Fluid ->
+    val FLUID: Codec<Fluid> = lazy { Registry.FLUID }.validate { fluid: Fluid ->
         when (fluid) {
             Fluids.EMPTY -> DataResult.error("Fluid must not be minecraft:empty")
             else -> DataResult.success(fluid)
@@ -65,7 +306,7 @@ object RobustumCodecs {
      * [Items.AIR]を受け付けない[Item]の[Codec]です。
      */
     @JvmField
-    val ITEM: Codec<Item> = lazyCodec { Registry.ITEM }.validate { item: Item ->
+    val ITEM: Codec<Item> = lazy { Registry.ITEM }.validate { item: Item ->
         when (item) {
             Items.AIR -> DataResult.error("Item must not be minecraft:air")
             else -> DataResult.success(item)
@@ -73,16 +314,17 @@ object RobustumCodecs {
     }
 
     @JvmStatic
-    private val RAW_STACK: Codec<ItemStack> = RecordCodecBuilder.create { instance ->
+    private val RAW_STACK: Codec<ItemStack> = record { instance ->
         instance
             .group(
                 ITEM.fieldOf("id").forGetter(ItemStack::getItem),
                 Codec.intRange(0, Int.MAX_VALUE).optionalFieldOf("count", 1).forGetter(ItemStack::getCount),
                 NbtCompound.CODEC
                     .optionalFieldOf("tag")
-                    .forGetter { stack: ItemStack -> Optional.ofNullable(stack.tag) },
-            ).apply(instance) { item: Item, count: Int, nbt: Optional<NbtCompound> ->
-                ItemStack(item, count).apply { nbt.ifPresent(this::setTag) }
+                    .convert()
+                    .forGetter { stack: ItemStack -> Option.fromNullable(stack.tag) },
+            ).apply(instance) { item: Item, count: Int, nbt: Option<NbtCompound> ->
+                ItemStack(item, count).apply { nbt.onSome(this::setTag) }
             }
     }
 
@@ -90,10 +332,9 @@ object RobustumCodecs {
      * [ItemStack.isEmpty]を返す[ItemStack]も受け付ける[ItemStack]の[Codec]です。
      */
     @JvmField
-    val ITEM_STACK: Codec<ItemStack> = RAW_STACK.optionalOf().xmap(
-        { it.orElse(ItemStack.EMPTY) },
-        { if (it.isEmpty) Optional.empty() else Optional.of(it) },
-    )
+    val ITEM_STACK: Codec<ItemStack> = option(
+        RAW_STACK,
+    ).xmap({ it.getOrElse { ItemStack.EMPTY } }, { it.some().filterNot(ItemStack::isEmpty) })
 
     //    Ingredient    //
     /**
@@ -150,7 +391,7 @@ object RobustumCodecs {
 
     @JvmStatic
     fun <T : Any> identifiedTagCodec(groupGetter: () -> TagGroup<T>): Codec<Tag<T>> = Identifier.CODEC.flatXmap(
-        { groupGetter().getTag(it).toDataResult("Unknown tag: $it") },
-        { it.getIdOrNull(groupGetter()).toDataResult("Unknown tag: $it") },
+        { groupGetter().getTag(it)?.let(DataResult<Tag<T>>::success) ?: DataResult.error("Unknown tag: $it") },
+        { it.getIdOrNull(groupGetter())?.let(DataResult<Tag<T>>::success) ?: DataResult.error("Unknown tag: $it") },
     )
 }

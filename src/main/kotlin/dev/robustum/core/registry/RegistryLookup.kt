@@ -1,7 +1,8 @@
 package dev.robustum.core.registry
 
-import com.mojang.serialization.DataResult
 import dev.robustum.core.extensions.getIdOrNull
+import dev.robustum.core.util.TextResult
+import dev.robustum.core.util.toTextResult
 import net.minecraft.block.Block
 import net.minecraft.entity.EntityType
 import net.minecraft.fluid.Fluid
@@ -18,91 +19,83 @@ import net.minecraft.util.registry.Registry
 interface RegistryLookup<T : Any> {
     /**
      * 指定された[id]から[IdentifiedEntry]を返します。
-     * @return 結果は[DataResult]でラップされます。
+     * @return 結果は[TextResult]でラップされます。
      */
-    fun getEntry(id: Identifier): DataResult<IdentifiedEntry<T>>
+    fun getEntry(id: Identifier): TextResult<IdentifiedEntry<T>>
 
     /**
      * 指定された[id]から[T]を返します。
-     * @return 結果は[DataResult]でラップされます。
+     * @return 結果は[TextResult]でラップされます。
      */
-    fun getValue(id: Identifier): DataResult<T> = getEntry(id).map(IdentifiedEntry<T>::value)
+    fun getValue(id: Identifier): TextResult<T> = getEntry(id).map(IdentifiedEntry<T>::value)
 
     /**
      * 指定された[value]から[TagEntryId]を返します。
-     * @return 結果は[DataResult]でラップされます。
+     * @return 結果は[TextResult]でラップされます。
      */
-    fun getId(value: T): DataResult<TagEntryId>
+    fun getId(value: T): TextResult<TagEntryId>
 
     /**
      * 指定された[id]から[RegistryEntryList]を返します。
-     * @return 結果は[DataResult]でラップされます。
+     * @return 結果は[TextResult]でラップされます。
      */
-    fun getTag(id: Identifier): DataResult<RegistryEntryList<T>>
+    fun getTag(id: Identifier): TextResult<RegistryEntryList<T>>
 
     /**
      * 指定された[tag]から[TagEntryId]を返します。
-     * @return 結果は[DataResult]でラップされます。
+     * @return 結果は[TextResult]でラップされます。
      */
-    fun getId(tag: Tag<T>): DataResult<TagEntryId>
+    fun getId(tag: Tag<T>): TextResult<TagEntryId>
 
     companion object {
         /**
          * [Block]に対する[RegistryLookup]です。
          */
         @JvmField
-        val BLOCK: RegistryLookup<Block> =
-            of(Registry.BLOCK, ServerTagManagerHolder.getTagManager()::getBlocks)
+        val BLOCK: RegistryLookup<Block> = of(Registry.BLOCK) { ServerTagManagerHolder.getTagManager().blocks }
 
         /**
          * [Fluid]に対する[RegistryLookup]です。
          */
         @JvmField
-        val FLUID: RegistryLookup<Fluid> =
-            of(Registry.FLUID, ServerTagManagerHolder.getTagManager()::getFluids)
+        val FLUID: RegistryLookup<Fluid> = of(Registry.FLUID) { ServerTagManagerHolder.getTagManager().fluids }
 
         /**
          * [EntityType]に対する[RegistryLookup]です。
          */
         @JvmField
-        val ENTITY_TYPE: RegistryLookup<EntityType<*>> =
-            of(Registry.ENTITY_TYPE, ServerTagManagerHolder.getTagManager()::getEntityTypes)
+        val ENTITY_TYPE: RegistryLookup<EntityType<*>> = of(Registry.ENTITY_TYPE) { ServerTagManagerHolder.getTagManager().entityTypes }
 
         /**
          * [Item]に対する[RegistryLookup]です。
          */
         @JvmField
-        val ITEM: RegistryLookup<Item> =
-            of(Registry.ITEM, ServerTagManagerHolder.getTagManager()::getItems)
+        val ITEM: RegistryLookup<Item> = of(Registry.ITEM) { ServerTagManagerHolder.getTagManager().items }
 
         /**
          * [registry]と[groupGetter]から[RegistryLookup]のインスタンスを生成します。
          */
         @JvmStatic
         fun <T : Any> of(registry: Registry<T>, groupGetter: () -> TagGroup<T>): RegistryLookup<T> = object : RegistryLookup<T> {
-            override fun getEntry(id: Identifier): DataResult<IdentifiedEntry<T>> = registry
+            override fun getEntry(id: Identifier): TextResult<IdentifiedEntry<T>> = registry
                 .get(id)
                 ?.let { IdentifiedEntryImpl(id, it) }
-                ?.let(DataResult<T>::success)
-                ?: DataResult.error("Unknown registry id: $id")
+                .toTextResult { "Unknown registry id: $id" }
 
-            override fun getId(value: T): DataResult<TagEntryId> = registry
+            override fun getId(value: T): TextResult<TagEntryId> = registry
                 .getId(value)
                 ?.let { TagEntryId(it, false) }
-                ?.let(DataResult<Identifier>::success)
-                ?: DataResult.error("Unknown registry value: $value")
+                .toTextResult { "Unknown registry value: $value" }
 
-            override fun getTag(id: Identifier): DataResult<RegistryEntryList<T>> = groupGetter()
+            override fun getTag(id: Identifier): TextResult<RegistryEntryList<T>> = groupGetter()
                 .getTag(id)
                 ?.let(RegistryEntryList.Companion::ofTag)
-                ?.let(DataResult<RegistryEntryList<T>>::success)
-                ?: DataResult.error("Unknown tag id: $id")
+                .toTextResult { "Unknown tag id: $id" }
 
-            override fun getId(tag: Tag<T>): DataResult<TagEntryId> = tag
+            override fun getId(tag: Tag<T>): TextResult<TagEntryId> = tag
                 .getIdOrNull(groupGetter())
                 ?.let { TagEntryId(it, true) }
-                ?.let(DataResult<Identifier>::success)
-                ?: DataResult.error("Unknown tag: $tag")
+                .toTextResult { "Unknown tag: $tag" }
         }
     }
 

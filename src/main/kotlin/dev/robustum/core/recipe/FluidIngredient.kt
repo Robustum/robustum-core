@@ -1,8 +1,8 @@
 package dev.robustum.core.recipe
 
 import com.mojang.serialization.Codec
-import com.mojang.serialization.codecs.RecordCodecBuilder
 import dev.robustum.core.codec.RegistryEntryListCodec
+import dev.robustum.core.codec.RobustumCodecs
 import dev.robustum.core.registry.RegistryEntryList
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants
 import net.minecraft.fluid.Fluid
@@ -22,7 +22,7 @@ class FluidIngredient(val entryList: RegistryEntryList<Fluid>, val amount: Long 
         val EMPTY = FluidIngredient(RegistryEntryList.empty(), 0)
 
         @JvmField
-        val CODEC: Codec<FluidIngredient> = RecordCodecBuilder.create { instance ->
+        val CODEC: Codec<FluidIngredient> = RobustumCodecs.record { instance ->
             instance
                 .group(
                     RegistryEntryListCodec.FLUID

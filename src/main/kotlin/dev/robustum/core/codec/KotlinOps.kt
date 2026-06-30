@@ -1,9 +1,8 @@
 package dev.robustum.core.codec
 
-import com.mojang.datafixers.util.Pair
 import com.mojang.serialization.DataResult
 import com.mojang.serialization.DynamicOps
-import dev.robustum.core.extensions.DataPair
+import dev.robustum.core.util.DFUPair
 import it.unimi.dsi.fastutil.bytes.ByteList
 import it.unimi.dsi.fastutil.ints.IntList
 import it.unimi.dsi.fastutil.longs.LongList
@@ -11,53 +10,25 @@ import java.nio.ByteBuffer
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
-object KotlinOps : DynamicOps<Any> {
+data object KotlinOps : DynamicOps<Any> {
     override fun empty(): Any = Unit
 
-    override fun <U : Any> convertTo(outOps: DynamicOps<U>, input: Any): U {
-        if (input is Map<*, *>) {
-            return convertMap(outOps, input)
-        }
-        if (input is ByteList) {
-            return outOps.createByteList(ByteBuffer.wrap(input.toByteArray()))
-        }
-        if (input is IntList) {
-            return outOps.createIntList(input.stream().mapToInt { it })
-        }
-        if (input is LongList) {
-            return outOps.createLongList(input.stream().mapToLong { it })
-        }
-        if (input is List<*>) {
-            return convertList(outOps, input)
-        }
-        if (input is String) {
-            return outOps.createString(input)
-        }
-        if (input is Boolean) {
-            return outOps.createBoolean(input)
-        }
-        if (input is Byte) {
-            return outOps.createByte(input)
-        }
-        if (input is Short) {
-            return outOps.createShort(input)
-        }
-        if (input is Int) {
-            return outOps.createInt(input)
-        }
-        if (input is Long) {
-            return outOps.createLong(input)
-        }
-        if (input is Float) {
-            return outOps.createFloat(input)
-        }
-        if (input is Double) {
-            return outOps.createDouble(input)
-        }
-        if (input is Number) {
-            return outOps.createNumeric(input)
-        }
-        throw IllegalStateException("Unsupported class: $input")
+    override fun <U : Any> convertTo(outOps: DynamicOps<U>, input: Any): U = when (input) {
+        is Map<*, *> -> convertMap(outOps, input)
+        is ByteList -> outOps.createByteList(ByteBuffer.wrap(input.toByteArray()))
+        is IntList -> outOps.createIntList(input.stream().mapToInt { it })
+        is LongList -> outOps.createLongList(input.stream().mapToLong { it })
+        is List<*> -> convertList(outOps, input)
+        is String -> outOps.createString(input)
+        is Boolean -> outOps.createBoolean(input)
+        is Byte -> outOps.createByte(input)
+        is Short -> outOps.createShort(input)
+        is Int -> outOps.createInt(input)
+        is Long -> outOps.createLong(input)
+        is Float -> outOps.createFloat(input)
+        is Double -> outOps.createDouble(input)
+        is Number -> outOps.createNumeric(input)
+        else -> throw IllegalStateException("Unsupported class: $input")
     }
 
     override fun getNumberValue(input: Any): DataResult<Number> = when (input) {
@@ -110,21 +81,20 @@ object KotlinOps : DynamicOps<Any> {
         return DataResult.error("Not a map: $map")
     }
 
-    override fun getMapValues(input: Any): DataResult<Stream<Pair<in Any, in Any>>> {
-        if (input is Map<*, *>) {
-            return DataResult.success(
+    override fun getMapValues(input: Any): DataResult<Stream<DFUPair<in Any, in Any>>> = when (input) {
+        is Map<*, *> ->
+            DataResult.success(
                 input
                     .mapNotNull { (k, v) ->
                         if (k == null) return@mapNotNull null
                         if (v == null) return@mapNotNull null
-                        DataPair.of(k, v)
+                        DFUPair.of(k, v)
                     }.stream(),
             )
-        }
-        return DataResult.error("Not a map: $input")
+        else -> DataResult.error("Not a map: $input")
     }
 
-    override fun createMap(map: Stream<Pair<in Any, in Any>>): Any = map.collect(Collectors.toMap({ it.first }, { it.second }))
+    override fun createMap(map: Stream<DFUPair<in Any, in Any>>): Any = map.collect(Collectors.toMap({ it.first }, { it.second }))
 
     override fun getStream(input: Any): DataResult<Stream<in Any>> = when (input) {
         is List<*> -> DataResult.success(input.stream())
