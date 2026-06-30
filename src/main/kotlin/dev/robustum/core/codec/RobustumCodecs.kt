@@ -12,8 +12,8 @@ import com.mojang.serialization.RecordBuilder
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import dev.robustum.core.extensions.convert
 import dev.robustum.core.extensions.filterNot
-import dev.robustum.core.extensions.getIdOrNull
 import dev.robustum.core.extensions.isSucceeded
+import dev.robustum.core.extensions.listOrElement
 import dev.robustum.core.extensions.toCodec
 import dev.robustum.core.extensions.validate
 import dev.robustum.core.mixin.codec.IngredientAccessor
@@ -28,6 +28,7 @@ import dev.robustum.core.util.kotlin
 import dev.robustum.core.util.some
 import net.minecraft.block.Block
 import net.minecraft.block.Blocks
+import net.minecraft.entity.EntityType
 import net.minecraft.fluid.Fluid
 import net.minecraft.fluid.Fluids
 import net.minecraft.item.Item
@@ -35,10 +36,10 @@ import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 import net.minecraft.nbt.NbtCompound
 import net.minecraft.recipe.Ingredient
+import net.minecraft.tag.ServerTagManagerHolder
 import net.minecraft.tag.Tag
 import net.minecraft.tag.TagGroup
 import net.minecraft.util.DyeColor
-import net.minecraft.util.Identifier
 import net.minecraft.util.registry.Registry
 import java.util.stream.Stream
 import kotlin.contracts.ExperimentalContracts
@@ -347,7 +348,7 @@ data object RobustumCodecs {
      */
     @Suppress("CAST_NEVER_SUCCEEDS")
     @JvmField
-    val INGREDIENT: Codec<Ingredient> = RegistryEntryListCodec.ITEM.xmap(
+    val INGREDIENT: Codec<Ingredient> = EntryOrTag.ITEM.xmap(
         { ItemIngredient(it).vanillaIngredient },
     ) { ingredient: Ingredient ->
         val empty: RegistryEntryList<Item> = RegistryEntryList.empty()
@@ -358,7 +359,7 @@ data object RobustumCodecs {
             if (entries.size == 1) {
                 when (val entry: Ingredient.Entry = entries[0]) {
                     is Ingredient.StackEntry -> RegistryEntryList.direct(entry.stacks.first().item)
-                    is Ingredient.TagEntry -> RegistryEntryList.ofTag(entry.tag)
+                    is Ingredient.TagEntry -> RegistryEntryList.tagged(entry.tag)
                     else -> empty
                 }
             } else {
@@ -387,11 +388,31 @@ data object RobustumCodecs {
         DataResult.success(ingredient).filterNot(Ingredient::isEmpty, "Empty ingredient is not allowed!")
     }
 
-    //    Tag    //
+    //    EntryOrTag    //
 
-    @JvmStatic
-    fun <T : Any> identifiedTagCodec(groupGetter: () -> TagGroup<T>): Codec<Tag<T>> = Identifier.CODEC.flatXmap(
-        { groupGetter().getTag(it)?.let(DataResult<Tag<T>>::success) ?: DataResult.error("Unknown tag: $it") },
-        { it.getIdOrNull(groupGetter())?.let(DataResult<Tag<T>>::success) ?: DataResult.error("Unknown tag: $it") },
-    )
+    data object EntryOrTag {
+        @JvmField
+        val BLOCK: Codec<RegistryEntryList<Block>> = create(Registry.BLOCK) { ServerTagManagerHolder.getTagManager().blocks }
+
+        @JvmField
+        val ENTITY_TYPE: Codec<RegistryEntryList<EntityType<*>>> = create(Registry.ENTITY_TYPE) {
+            ServerTagManagerHolder.getTagManager().entityTypes
+        }
+
+        @JvmField
+        val FLUID: Codec<RegistryEntryList<Fluid>> = create(Registry.FLUID) { ServerTagManagerHolder.getTagManager().fluids }
+
+        @JvmField
+        val ITEM: Codec<RegistryEntryList<Item>> = create(Registry.ITEM) { ServerTagManagerHolder.getTagManager().items }
+
+        @JvmStatic
+        private fun <T : Any> create(registry: Registry<T>, group: () -> TagGroup<T>): Codec<RegistryEntryList<T>> =
+            either(registry.listOrElement(), Tag.codec(group))
+                .xmap(
+                    { either: Either<List<T>, Tag<T>> ->
+                        either.fold(RegistryEntryList.Companion::direct, RegistryEntryList.Companion::tagged)
+                    },
+                    RegistryEntryList<T>::unwrap,
+                )
+    }
 }

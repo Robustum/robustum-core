@@ -89,7 +89,7 @@ interface RegistryLookup<T : Any> {
 
             override fun getTag(id: Identifier): TextResult<RegistryEntryList<T>> = groupGetter()
                 .getTag(id)
-                ?.let(RegistryEntryList.Companion::ofTag)
+                ?.let(RegistryEntryList.Companion::tagged)
                 .toTextResult { "Unknown tag id: $id" }
 
             override fun getId(tag: Tag<T>): TextResult<TagEntryId> = tag

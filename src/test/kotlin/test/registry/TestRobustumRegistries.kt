@@ -1,7 +1,5 @@
 package test.registry
 
-import dev.robustum.core.extensions.onErrored
-import dev.robustum.core.extensions.onSucceeded
 import dev.robustum.core.registry.RegistryLookup
 import io.kotest.matchers.shouldBe
 import net.minecraft.Bootstrap
@@ -24,17 +22,17 @@ class TestRobustumRegistries {
         // lookup
         RegistryLookup.BLOCK
             .getId(Blocks.STONE)
-            .onSucceeded { it.asString() shouldBe "minecraft:stone" }
-            .onErrored(::error)
+            .onRight { it.asString() shouldBe "minecraft:stone" }
+            .onLeft(::error)
 
         RegistryLookup.BLOCK
             .getValue(Identifier("diamond_block"))
-            .onSucceeded { it shouldBe Blocks.DIAMOND_BLOCK }
-            .onErrored(::error)
+            .onRight { it shouldBe Blocks.DIAMOND_BLOCK }
+            .onLeft(::error)
 
         RegistryLookup.BLOCK
             .getId(BlockTags.SLABS)
-            .onSucceeded { it.asString() shouldBe "#minecraft:slabs" }
-            .onErrored(::error)
+            .onRight { it.asString() shouldBe "#minecraft:slabs" }
+            .onLeft(::error)
     }
 }

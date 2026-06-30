@@ -1,7 +1,6 @@
 package dev.robustum.core.recipe
 
 import com.mojang.serialization.Codec
-import dev.robustum.core.codec.RegistryEntryListCodec
 import dev.robustum.core.codec.RobustumCodecs
 import dev.robustum.core.extensions.isIn
 import dev.robustum.core.registry.RegistryEntryList
@@ -25,7 +24,7 @@ class ItemIngredient(val entryList: RegistryEntryList<Item>, val count: Int = 1)
         val CODEC: Codec<ItemIngredient> = RobustumCodecs.record { instance ->
             instance
                 .group(
-                    RegistryEntryListCodec.ITEM
+                    RobustumCodecs.EntryOrTag.ITEM
                         .fieldOf("items")
                         .forGetter(ItemIngredient::entryList),
                     Codec.intRange(1, Int.MAX_VALUE).optionalFieldOf("count", 1).forGetter(ItemIngredient::count),
@@ -33,7 +32,7 @@ class ItemIngredient(val entryList: RegistryEntryList<Item>, val count: Int = 1)
         }
     }
 
-    constructor(tag: Tag<Item>, count: Int = 1) : this(RegistryEntryList.ofTag(tag), count)
+    constructor(tag: Tag<Item>, count: Int = 1) : this(RegistryEntryList.tagged(tag), count)
 
     constructor(item: Item, count: Int = 1) : this(RegistryEntryList.direct(item), count)
 
@@ -41,7 +40,7 @@ class ItemIngredient(val entryList: RegistryEntryList<Item>, val count: Int = 1)
      * この素材が有効かどうか判定します。
      */
     val isEmpty: Boolean
-        get() = entryList.isEmpty || count <= 0
+        get() = entryList.isEmpty() || count <= 0
 
     /**
      * この素材をバニラの[Ingredient]に変換します。
@@ -49,9 +48,10 @@ class ItemIngredient(val entryList: RegistryEntryList<Item>, val count: Int = 1)
     val vanillaIngredient: Ingredient
         get() = when (isEmpty) {
             true -> Ingredient.EMPTY
-            false -> entryList.unwrap().map(Ingredient::fromTag) { items: List<Item> ->
-                items.map(::ItemStack).stream().let(Ingredient::ofStacks)
-            }
+            false -> entryList.unwrap().fold(
+                { items: List<Item> -> items.map(::ItemStack).stream().let(Ingredient::ofStacks) },
+                Ingredient::fromTag,
+            )
         }
 
     override fun test(stack: ItemStack): Boolean = when (stack.isEmpty) {

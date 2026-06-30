@@ -1,96 +1,57 @@
 package dev.robustum.core.registry
 
-import dev.robustum.core.extensions.getSafeValue
 import dev.robustum.core.util.Either
-import dev.robustum.core.util.identity
+import dev.robustum.core.util.unwrap
 import net.minecraft.tag.Tag
-import kotlin.random.Random
 
-/**
- * [T]値の[List]または[Tag]を持つオブジェクトです。
- */
-
-sealed interface RegistryEntryList<out T : Any> : Iterable<T> {
+interface RegistryEntryList<out T : Any> : Collection<T> {
     companion object {
-        /**
-         * 空の[RegistryEntryList]を返します。
-         */
         @JvmStatic
         fun <T : Any> empty(): RegistryEntryList<T> = Empty
 
-        /**
-         * [value]を持つ[RegistryEntryList]を返します。
-         */
         @JvmStatic
         fun <T : Any> direct(value: T): RegistryEntryList<T> = direct(listOf(value))
 
-        /**
-         * [values]を持つ[RegistryEntryList]を返します。
-         */
         @JvmStatic
         fun <T : Any> direct(vararg values: T): RegistryEntryList<T> = direct(values.toList())
 
-        /**
-         * [values]を持つ[RegistryEntryList]を返します。
-         */
         @JvmStatic
-        fun <T : Any> direct(values: List<T>): RegistryEntryList<T> = Direct(values)
+        fun <T : Any> direct(values: List<T>): RegistryEntryList<T> = when {
+            values.isEmpty() -> empty()
+            else -> Direct(values)
+        }
 
-        /**
-         * [tag]を持つ[RegistryEntryList]を返します。
-         */
         @JvmStatic
-        fun <T : Any> ofTag(tag: Tag<T>): RegistryEntryList<T> = Tagged(tag)
+        fun <T : Any> tagged(tag: Tag<T>): RegistryEntryList<T> = Tagged(tag)
     }
 
-    /**
-     * [Tag]または[List]を持つ[Either]を返します。
-     */
-    fun unwrap(): Either<Tag<@UnsafeVariance T>, List<@UnsafeVariance T>>
+    fun unwrap(): Either<List<T>, Tag<@UnsafeVariance T>>
 
-    /**
-     * この[RegistryEntryList]の要素が空か判定します。
-     */
-    val isEmpty: Boolean get() = entries.isEmpty()
+    fun asList(): List<T> = unwrap().map(Tag<T>::values).unwrap()
 
-    /**
-     * この[RegistryEntryList]の要素の個数を返します。
-     */
-    val size: Int get() = entries.size
+    operator fun get(index: Int): T? = asList().getOrNull(index)
 
-    /**
-     * この[RegistryEntryList]の要素のリストを返します。
-     */
-    val entries: List<T> get() = unwrap().fold(Tag<T>::getSafeValue, identity())
+    override val size: Int get() = asList().size
 
-    /**
-     * この[RegistryEntryList]からランダムな要素を返します。
-     */
-    fun getRandom(random: Random): T? = entries.randomOrNull(random)
+    override fun isEmpty(): Boolean = asList().isEmpty()
 
-    /**
-     * 指定された[index]に対応する要素を返します。
-     */
-    operator fun get(index: Int): T? = entries.getOrNull(index)
+    override fun contains(element: @UnsafeVariance T): Boolean = element in asList()
 
-    /**
-     * 指定された要素[entry]が含まれるか判定します。
-     */
-    operator fun contains(entry: @UnsafeVariance T): Boolean = entries.contains(entry)
+    override fun iterator(): Iterator<T> = asList().iterator()
 
-    override fun iterator(): Iterator<T> = entries.iterator()
+    override fun containsAll(elements: Collection<@UnsafeVariance T>): Boolean = all { contains(it) }
 
     private data object Empty : RegistryEntryList<Nothing> {
-        override fun unwrap(): Either<Tag<Nothing>, List<Nothing>> = Either.Right(listOf())
+        override fun unwrap(): Either<List<Nothing>, Tag<Nothing>> = Either.Left(listOf())
     }
 
     @JvmInline
-    value class Direct<out T : Any>(private val values: List<T>) : RegistryEntryList<T> {
-        override fun unwrap(): Either<Tag<@UnsafeVariance T>, List<@UnsafeVariance T>> = Either.Right(values)
+    value class Direct<out T : Any> internal constructor(private val list: List<T>) : RegistryEntryList<T> {
+        override fun unwrap(): Either<List<T>, Tag<@UnsafeVariance T>> = Either.Left(list)
     }
 
     @JvmInline
-    value class Tagged<out T : Any>(private val tag: Tag<T>) : RegistryEntryList<T> {
-        override fun unwrap(): Either<Tag<@UnsafeVariance T>, List<@UnsafeVariance T>> = Either.Left(tag)
+    value class Tagged<out T : Any> internal constructor(private val tag: Tag<T>) : RegistryEntryList<T> {
+        override fun unwrap(): Either<List<T>, Tag<@UnsafeVariance T>> = Either.Right(tag)
     }
 }

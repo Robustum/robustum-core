@@ -1,8 +1,8 @@
 package dev.robustum.core.text
 
 import com.mojang.serialization.Codec
-import dev.robustum.core.extensions.lazyCodec
-import dev.robustum.core.extensions.toDataResult
+import com.mojang.serialization.DataResult
+import dev.robustum.core.codec.RobustumCodecs
 import net.minecraft.text.*
 import net.minecraft.util.Identifier
 
@@ -22,7 +22,7 @@ object TextSerializerRegistry {
     @JvmField
     val SERIALIZER_CODEC: Codec<TextSerializer<*>> = Identifier.CODEC.comapFlatMap(
         { id: Identifier ->
-            idRegistry[id].toDataResult("Unknown text serializer: $id")
+            idRegistry[id]?.let { DataResult.success(it) } ?: DataResult.error("Unknown text serializer: $id")
         },
         TextSerializer<*>::id,
     )
@@ -31,11 +31,8 @@ object TextSerializerRegistry {
      * [Text]向けの[Codec]です。
      */
     @JvmField
-    val TEXT_CODEC: Codec<Text> = lazyCodec {
-        SERIALIZER_CODEC.dispatch(
-            TextSerializerRegistry::getSerializer,
-            TextSerializer<*>::codec,
-        )
+    val TEXT_CODEC: Codec<Text> = RobustumCodecs.lazy {
+        SERIALIZER_CODEC.dispatch(TextSerializerRegistry::getSerializer, TextSerializer<*>::codec)
     }
 
     @JvmStatic
