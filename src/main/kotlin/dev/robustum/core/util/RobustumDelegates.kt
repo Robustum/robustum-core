@@ -1,5 +1,8 @@
 package dev.robustum.core.util
 
+import net.minecraft.util.Identifier
+import net.minecraft.util.registry.Registry
+import kotlin.properties.ReadOnlyProperty
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -25,4 +28,9 @@ data object RobustumDelegates {
             this.value = value
         }
     }
+}
+
+fun <T : Any> Registry<T>.lazy(id: Identifier): ReadOnlyProperty<Any?, T> = ReadOnlyProperty { _, _ ->
+    this@lazy.get(id)
+        ?: error("Missing element: $id")
 }

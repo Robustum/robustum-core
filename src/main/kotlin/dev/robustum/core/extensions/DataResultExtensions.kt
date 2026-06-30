@@ -26,7 +26,8 @@ fun <R> DataResult<R>.onSucceeded(action: (R) -> Unit): DataResult<R> = apply { 
  * [DataResult]が値を保持していない場合は指定された[action]をその値で呼び出し、それ以外の場合は何も行いません。
  * @param action 値が存在しない場合に実行されるブロック
  */
-fun <R> DataResult<R>.onErrored(action: (String) -> Unit): DataResult<R> = apply { error().map(DataResult.PartialResult<R>::message).ifPresent(action) }
+fun <R> DataResult<R>.onErrored(action: (String) -> Unit): DataResult<R> =
+    apply { error().map(DataResult.PartialResult<R>::message).ifPresent(action) }
 
 /**
  * 指定された[predicate]で検証した[DataResult]を返します。

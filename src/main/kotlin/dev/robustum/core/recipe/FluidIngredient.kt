@@ -1,7 +1,6 @@
 package dev.robustum.core.recipe
 
 import com.mojang.serialization.Codec
-import dev.robustum.core.codec.RegistryEntryListCodec
 import dev.robustum.core.codec.RobustumCodecs
 import dev.robustum.core.registry.RegistryEntryList
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants
@@ -25,7 +24,7 @@ class FluidIngredient(val entryList: RegistryEntryList<Fluid>, val amount: Long 
         val CODEC: Codec<FluidIngredient> = RobustumCodecs.record { instance ->
             instance
                 .group(
-                    RegistryEntryListCodec.FLUID
+                    RobustumCodecs.EntryOrTag.FLUID
                         .fieldOf("fluids")
                         .forGetter(FluidIngredient::entryList),
                     Codec.LONG.optionalFieldOf("amount", FluidConstants.BUCKET).forGetter(FluidIngredient::amount),
@@ -33,7 +32,7 @@ class FluidIngredient(val entryList: RegistryEntryList<Fluid>, val amount: Long 
         }
     }
 
-    constructor(tag: Tag<Fluid>, amount: Long = FluidConstants.BUCKET) : this(RegistryEntryList.ofTag(tag), amount)
+    constructor(tag: Tag<Fluid>, amount: Long = FluidConstants.BUCKET) : this(RegistryEntryList.tagged(tag), amount)
 
     constructor(fluid: Fluid, amount: Long = FluidConstants.BUCKET) : this(RegistryEntryList.direct(fluid), amount)
 
@@ -41,7 +40,7 @@ class FluidIngredient(val entryList: RegistryEntryList<Fluid>, val amount: Long 
      * この素材が有効かどうか判定します。
      */
     val isEmpty: Boolean
-        get() = entryList.isEmpty || amount <= 0
+        get() = entryList.isEmpty() || amount <= 0
 
     override fun test(fluid: Fluid, amount: Long): Boolean = when {
         fluid == Fluids.EMPTY || amount <= 0 -> this.isEmpty
