@@ -40,6 +40,7 @@ import net.minecraft.tag.ServerTagManagerHolder
 import net.minecraft.tag.Tag
 import net.minecraft.tag.TagGroup
 import net.minecraft.util.DyeColor
+import net.minecraft.util.registry.DefaultedRegistry
 import net.minecraft.util.registry.Registry
 import java.util.stream.Stream
 import kotlin.contracts.ExperimentalContracts
@@ -50,6 +51,9 @@ import kotlin.enums.enumEntries
 data object RobustumCodecs {
     @JvmField
     val ANY: Codec<Any> = KotlinOps.toCodec()
+
+    @JvmField
+    val DYE_COLOR: Codec<DyeColor> = stringEnum(DyeColor::asString)
 
     /**
      * [Map]の[Codec]を作成します。
@@ -271,48 +275,33 @@ data object RobustumCodecs {
     @JvmField
     val POSITIVE_LONG: Codec<Long> = ranged(Codec.LONG, 1..Long.MAX_VALUE)
 
-    //    Block    //
+    //    Registry    //
+
+    fun <T : Any> nonEmptyRegistry(registry: DefaultedRegistry<T>, message: () -> String): Codec<T> = registry.validate { element: T ->
+        if (registry.getId(element) == registry.defaultId) {
+            DataResult.error(message())
+        } else {
+            DataResult.success(element)
+        }
+    }
+
     /**
      * [Blocks.AIR]を受け付けない[Block]の[Codec]です。
      */
     @JvmField
-    val BLOCK: Codec<Block> = lazy { Registry.BLOCK }.validate { block: Block ->
-        when (block) {
-            Blocks.AIR -> DataResult.error("Block must not be minecraft:air")
-            else -> DataResult.success(block)
-        }
-    }
+    val BLOCK: Codec<Block> = nonEmptyRegistry(Registry.BLOCK) { "Block must be non-empty" }
 
-    //    DyeColor    //
-    /**
-     * [DyeColor]の[Codec]です。
-     */
-    @JvmField
-    val DYE_COLOR: Codec<DyeColor> = stringEnum(DyeColor::asString)
-
-    //    Fluid    //
     /**
      * [Fluids.EMPTY]を受け付けない[Fluid]の[Codec]です。
      */
     @JvmField
-    val FLUID: Codec<Fluid> = lazy { Registry.FLUID }.validate { fluid: Fluid ->
-        when (fluid) {
-            Fluids.EMPTY -> DataResult.error("Fluid must not be minecraft:empty")
-            else -> DataResult.success(fluid)
-        }
-    }
+    val FLUID: Codec<Fluid> = nonEmptyRegistry(Registry.FLUID) { "Fluid must be non-empty" }
 
-    //    ItemStack    //
     /**
      * [Items.AIR]を受け付けない[Item]の[Codec]です。
      */
     @JvmField
-    val ITEM: Codec<Item> = lazy { Registry.ITEM }.validate { item: Item ->
-        when (item) {
-            Items.AIR -> DataResult.error("Item must not be minecraft:air")
-            else -> DataResult.success(item)
-        }
-    }
+    val ITEM: Codec<Item> = nonEmptyRegistry(Registry.ITEM) { "Item must be non-empty" }
 
     @JvmStatic
     private val RAW_STACK: Codec<ItemStack> = record { instance ->
@@ -333,11 +322,13 @@ data object RobustumCodecs {
      * [ItemStack.isEmpty]を返す[ItemStack]も受け付ける[ItemStack]の[Codec]です。
      */
     @JvmField
-    val ITEM_STACK: Codec<ItemStack> = option(
-        RAW_STACK,
-    ).xmap({ it.getOrElse { ItemStack.EMPTY } }, { it.some().filterNot(ItemStack::isEmpty) })
+    val ITEM_STACK: Codec<ItemStack> = option(RAW_STACK).xmap(
+        { it.getOrElse { ItemStack.EMPTY } },
+        { it.some().filterNot(ItemStack::isEmpty) },
+    )
 
     //    Ingredient    //
+
     /**
      * よりシンプルな記法で書ける[Ingredient]の[Codec]です。
      * ```

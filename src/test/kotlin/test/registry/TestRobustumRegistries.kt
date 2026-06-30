@@ -25,8 +25,7 @@ class TestRobustumRegistries {
             .onRight { it.asString() shouldBe "minecraft:stone" }
             .onLeft(::error)
 
-        RegistryLookup.BLOCK
-            .getValue(Identifier("diamond_block"))
+        RegistryLookup.BLOCK[Identifier("diamond_block")]
             .onRight { it shouldBe Blocks.DIAMOND_BLOCK }
             .onLeft(::error)
 

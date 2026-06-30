@@ -2,7 +2,6 @@ package dev.robustum.core.recipe
 
 import com.mojang.serialization.Codec
 import dev.robustum.core.codec.RobustumCodecs
-import dev.robustum.core.extensions.isIn
 import dev.robustum.core.registry.RegistryEntryList
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
@@ -56,6 +55,6 @@ class ItemIngredient(val entryList: RegistryEntryList<Item>, val count: Int = 1)
 
     override fun test(stack: ItemStack): Boolean = when (stack.isEmpty) {
         true -> this.isEmpty
-        false -> stack.isIn(entryList) && stack.count >= count
+        false -> stack.item in entryList && stack.count >= count
     }
 }

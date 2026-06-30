@@ -1,6 +1,5 @@
 package dev.robustum.core.extensions
 
-import dev.robustum.core.registry.RegistryEntryList
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.entity.Entity
@@ -34,40 +33,10 @@ fun <T : Any> Tag<T>.getIdOrNull(tagGroup: TagGroup<T>): Identifier? = idOrNull 
  */
 fun <T : Any> Tag<T>.getSafeValue(): List<T> = runCatching { values() }.getOrDefault(emptyList())
 
-/**
- * 指定された[Entity]が[tag]に含まれているか判定します。
- * @return [tag]に含まれている場合はtrue
- */
-fun Entity.isIn(tag: Tag<EntityType<*>>): Boolean = this.type.isIn(tag)
+operator fun Tag<Block>.contains(state: BlockState): Boolean = this.contains(state.block)
 
-/**
- * 指定された[ItemStack]が[tag]に含まれているか判定します。
- * @return [tag]に含まれている場合はtrue
- */
-fun ItemStack.isIn(tag: Tag<Item>): Boolean = this.item.isIn(tag)
+operator fun Tag<EntityType<*>>.contains(entity: Entity): Boolean = this.contains(entity.type)
 
-//    RegistryEntryList    //
+operator fun Tag<Fluid>.contains(state: FluidState): Boolean = this.contains(state.fluid)
 
-/**
- * 指定された[BlockState]が[entryList]に含まれているか判定します。
- * @return [entryList]に含まれている場合はtrue
- */
-fun BlockState.isIn(entryList: RegistryEntryList<Block>): Boolean = this.block in entryList
-
-/**
- * 指定された[FluidState]が[entryList]に含まれているか判定します。
- * @return [entryList]に含まれている場合はtrue
- */
-fun FluidState.isIn(entryList: RegistryEntryList<Fluid>): Boolean = this.fluid in entryList
-
-/**
- * 指定された[Entity]が[entryList]に含まれているか判定します。
- * @return [entryList]に含まれている場合はtrue
- */
-fun Entity.isIn(entryList: RegistryEntryList<EntityType<*>>): Boolean = this.type in entryList
-
-/**
- * 指定された[ItemStack]が[entryList]に含まれているか判定します。
- * @return [entryList]に含まれている場合はtrue
- */
-fun ItemStack.isIn(entryList: RegistryEntryList<Item>): Boolean = this.item in entryList
+operator fun Tag<Item>.contains(stack: ItemStack): Boolean = this.contains(stack.item)

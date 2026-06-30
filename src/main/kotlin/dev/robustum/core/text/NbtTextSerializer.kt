@@ -60,5 +60,5 @@ object NbtTextSerializer : TextSerializer<NbtText> {
             }
             return STORAGE.decode(ops, input).map { it.mapFirst { text: NbtText.StorageNbtText -> text as NbtText } }
         }
-    } 
+    }
 }
