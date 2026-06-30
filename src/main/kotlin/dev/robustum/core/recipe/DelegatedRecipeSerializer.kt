@@ -5,7 +5,7 @@ import com.mojang.serialization.Codec
 import com.mojang.serialization.DataResult
 import com.mojang.serialization.DynamicOps
 import com.mojang.serialization.JsonOps
-import com.mojang.serialization.codecs.RecordCodecBuilder
+import dev.robustum.core.codec.RobustumCodecs
 import net.minecraft.network.PacketByteBuf
 import net.minecraft.recipe.Recipe
 import net.minecraft.recipe.RecipeSerializer
@@ -20,7 +20,7 @@ import net.minecraft.util.registry.Registry
  */
 class DelegatedRecipeSerializer<T : Recipe<*>>(private val delegated: RecipeSerializer<T>, private val recipeCodec: RecipeCodec<T>) :
     RecipeSerializer<T> {
-    private fun createCodec(id: Identifier): Codec<T> = RecordCodecBuilder.create { instance ->
+    private fun createCodec(id: Identifier): Codec<T> = RobustumCodecs.record { instance ->
         instance
             .group(
                 Registry.RECIPE_SERIALIZER.fieldOf("type").forGetter { this },

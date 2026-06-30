@@ -1,7 +1,6 @@
 package dev.robustum.core.recipe
 
 import com.mojang.serialization.Codec
-import com.mojang.serialization.codecs.RecordCodecBuilder
 import dev.robustum.core.RobustumCore
 import dev.robustum.core.codec.RobustumCodecs
 import dev.robustum.core.extensions.toDefaultedList
@@ -20,7 +19,7 @@ object RobustumRecipeSerializers {
             "shapeless",
             RecipeSerializer.SHAPELESS,
         ) { id: Identifier ->
-            RecordCodecBuilder.mapCodec { instance ->
+            RobustumCodecs.recordMap { instance ->
                 instance
                     .group(
                         Codec.STRING
@@ -76,7 +75,7 @@ object RobustumRecipeSerializers {
         "stonecutting",
         RecipeSerializer.STONECUTTING,
     ) { id: Identifier ->
-        RecordCodecBuilder.mapCodec { instance ->
+        RobustumCodecs.recordMap { instance ->
             instance
                 .group(
                     Codec.STRING
@@ -98,7 +97,7 @@ object RobustumRecipeSerializers {
     private fun <T : AbstractCookingRecipe> createCookingRecipe(
         factory: (Identifier, String, Ingredient, ItemStack, Float, Int) -> T,
     ): RecipeCodec<T> = RecipeCodec { id: Identifier ->
-        RecordCodecBuilder.mapCodec<T> { instance ->
+        RobustumCodecs.recordMap { instance ->
             instance
                 .group(
                     Codec.STRING

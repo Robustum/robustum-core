@@ -1,26 +1,25 @@
 package dev.robustum.core.text
 
-import com.mojang.datafixers.util.Either
 import com.mojang.serialization.Codec
-import com.mojang.serialization.codecs.RecordCodecBuilder
 import dev.robustum.core.codec.RobustumCodecs
+import dev.robustum.core.util.Either
+import dev.robustum.core.util.identity
 import net.minecraft.text.Text
 import net.minecraft.text.TranslatableText
 import net.minecraft.util.Identifier
-import java.util.function.Function
 
 object TranslatableTextSerializer : TextSerializer<TranslatableText> {
     @JvmField
-    val ARGS: Codec<in Any> = Codec
+    val ARGS: Codec<in Any> = RobustumCodecs
         .either(RobustumCodecs.ANY, TextSerializerRegistry.TEXT_CODEC)
         .xmap(
-            { either: Either<in Any, Text> -> either.map(Function.identity(), Text::asString) },
-            { arg: Any -> if (arg is Text) Either.right(arg) else Either.left(arg) },
+            { either: Either<Any, Text> -> either.fold(identity(), Text::asString) },
+            { arg: Any -> if (arg is Text) Either.Right(arg) else Either.Left(arg) },
         )
 
     override val id: Identifier = Identifier("translatable")
 
-    override val codec: Codec<TranslatableText> = RecordCodecBuilder.create { instance ->
+    override val codec: Codec<TranslatableText> = RobustumCodecs.record { instance ->
         instance
             .group(
                 Codec.STRING.fieldOf("translate").forGetter(TranslatableText::getKey),

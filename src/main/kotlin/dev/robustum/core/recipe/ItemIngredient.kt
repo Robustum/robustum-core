@@ -1,8 +1,8 @@
 package dev.robustum.core.recipe
 
 import com.mojang.serialization.Codec
-import com.mojang.serialization.codecs.RecordCodecBuilder
 import dev.robustum.core.codec.RegistryEntryListCodec
+import dev.robustum.core.codec.RobustumCodecs
 import dev.robustum.core.extensions.isIn
 import dev.robustum.core.registry.RegistryEntryList
 import net.minecraft.item.Item
@@ -22,7 +22,7 @@ class ItemIngredient(val entryList: RegistryEntryList<Item>, val count: Int = 1)
         val EMPTY = ItemIngredient(RegistryEntryList.empty(), 0)
 
         @JvmField
-        val CODEC: Codec<ItemIngredient> = RecordCodecBuilder.create { instance ->
+        val CODEC: Codec<ItemIngredient> = RobustumCodecs.record { instance ->
             instance
                 .group(
                     RegistryEntryListCodec.ITEM
