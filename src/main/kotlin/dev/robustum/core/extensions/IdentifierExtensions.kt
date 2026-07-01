@@ -1,6 +1,11 @@
+@file:OptIn(ExperimentalContracts::class)
+
 package dev.robustum.core.extensions
 
 import net.minecraft.util.Identifier
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /**
  * 指定された[prefix]でパスを前置した[Identifier]を返します。
@@ -21,7 +26,12 @@ fun Identifier.suffix(suffix: String): Identifier = Identifier(this.namespace, t
  * @param transform [Identifier]のパスを変換するブロック
  * @return [transform]でパスを置換した新しい[Identifier]
  */
-inline fun Identifier.modify(transform: (String) -> String): Identifier = Identifier(this.namespace, transform(this.path))
+inline fun Identifier.modify(transform: (String) -> String): Identifier {
+    contract {
+        callsInPlace(transform, InvocationKind.EXACTLY_ONCE)
+    }
+    return Identifier(this.namespace, transform(this.path))
+}
 
 /**
  * 指定された[prefix]でパスの前置詞を削除した[Identifier]を返します。

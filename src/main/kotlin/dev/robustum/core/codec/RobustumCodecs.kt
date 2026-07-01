@@ -201,7 +201,9 @@ data object RobustumCodecs {
     @JvmStatic
     inline fun <reified V : Enum<V>> stringEnum(crossinline factory: (V) -> String?): Codec<V> = Codec.STRING.flatXmap<V>(
         { name: String ->
-            enumEntries<V>().firstOrNull { factory(it) == name }?.let { DataResult.success(it) }
+            enumEntries<V>()
+                .firstOrNull { factory(it) == name }
+                ?.let { DataResult.success(it) }
                 ?: DataResult.error("Unknown element name: $name")
         },
         { value: V -> factory(value)?.let { DataResult.success(it) } ?: DataResult.error("Element with unknown name: $value") },
