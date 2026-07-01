@@ -3,6 +3,7 @@ package dev.robustum.core.extensions
 import com.mojang.serialization.Codec
 import com.mojang.serialization.DataResult
 import com.mojang.serialization.MapCodec
+import dev.robustum.core.codec.KeyDispatchCodec
 import dev.robustum.core.codec.RobustumCodecs
 import dev.robustum.core.util.DFUEither
 import dev.robustum.core.util.Either
@@ -13,8 +14,21 @@ import dev.robustum.core.util.left
 import dev.robustum.core.util.right
 import dev.robustum.core.util.unwrap
 import java.util.Optional
+import java.util.function.Function
 
 fun <A : Any> Codec<A>.validate(validator: (A) -> DataResult<A>): Codec<A> = flatXmap(validator, validator)
+
+fun <A : Any, E : Any> Codec<A>.dispatchByMap(type: Function<E, A>, codec: Function<A, MapCodec<out E>>): Codec<E> =
+    dispatchByMap("type", type, codec)
+
+fun <A : Any, E : Any> Codec<A>.dispatchByMap(typeKey: String, type: Function<E, A>, codec: Function<A, MapCodec<out E>>): Codec<E> =
+    dispatchByMapPartial(typeKey, type.andThen { DataResult.success(it) }, codec.andThen { DataResult.success(it) })
+
+fun <A : Any, E : Any> Codec<A>.dispatchByMapPartial(
+    typeKey: String,
+    type: Function<E, DataResult<A>>,
+    codec: Function<A, DataResult<MapCodec<out E>>>,
+): Codec<E> = KeyDispatchCodec(typeKey, this, type::apply, codec::apply).codec()
 
 //    List    //
 
