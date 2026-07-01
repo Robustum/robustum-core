@@ -4,3 +4,5 @@ accessible class net/minecraft/recipe/Ingredient$Entry
 accessible class net/minecraft/recipe/Ingredient$StackEntry
 accessible class net/minecraft/recipe/Ingredient$TagEntry
 accessible field net/minecraft/recipe/Ingredient$TagEntry tag Lnet/minecraft/tag/Tag;
+
+accessible method net/minecraft/util/Identifier method_29186 (Ljava/lang/String;)Lcom/mojang/serialization/DataResult;

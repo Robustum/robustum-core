@@ -30,34 +30,6 @@ fun <R> DataResult<R>.onErrored(action: (String) -> Unit): DataResult<R> =
     apply { error().map(DataResult.PartialResult<R>::message).ifPresent(action) }
 
 /**
- * 指定された[predicate]で検証した[DataResult]を返します。
- * @param R 値のクラス
- * @param predicate 値を[Boolean]で評価する。
- * @param errorMessage [predicate]がfalseの場合のエラー文
- * @return [predicate]で評価された[DataResult]
- */
-fun <R> DataResult<R>.filter(predicate: (R) -> Boolean, errorMessage: String): DataResult<R> = flatMap { result: R ->
-    when (predicate(result)) {
-        true -> DataResult.success(result)
-        false -> DataResult.error(errorMessage)
-    }
-}
-
-/**
- * 指定された[predicate]で検証した[DataResult]を返します。
- * @param R 値のクラス
- * @param predicate 値を[Boolean]で評価する。
- * @param errorMessage [predicate]がtrueの場合のエラー文
- * @return [predicate]で評価された[DataResult]
- */
-fun <R> DataResult<R>.filterNot(predicate: (R) -> Boolean, errorMessage: String): DataResult<R> = flatMap { result: R ->
-    when (predicate(result)) {
-        true -> DataResult.error(errorMessage)
-        false -> DataResult.success(result)
-    }
-}
-
-/**
  * 指定された[DataResult]の値を[Option]に包んで返します。
  */
 fun <R : Any> DataResult<R>.getOption(): Option<R> = get().left().kotlin

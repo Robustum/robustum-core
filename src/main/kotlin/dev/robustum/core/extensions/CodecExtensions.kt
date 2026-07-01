@@ -9,6 +9,8 @@ import dev.robustum.core.util.Either
 import dev.robustum.core.util.Option
 import dev.robustum.core.util.java
 import dev.robustum.core.util.kotlin
+import dev.robustum.core.util.left
+import dev.robustum.core.util.right
 import dev.robustum.core.util.unwrap
 import java.util.Optional
 
@@ -37,7 +39,7 @@ fun <A> Codec<A>.listOf(min: Int, max: Int): Codec<List<A>> = this.listOf().vali
  */
 fun <A> Codec<A>.listOrElement(): Codec<List<A>> = RobustumCodecs.either(this.listOf(), this).xmap(
     { either: Either<List<A>, A> -> either.map(::listOf).unwrap() },
-    { list: List<A> -> if (list.size == 1) Either.Right(list[0]) else Either.Left(list) },
+    { list: List<A> -> list.singleOrNull()?.right() ?: list.left() },
 )
 
 /**
@@ -55,7 +57,7 @@ fun <A> Codec<A>.listOrElement(range: IntRange): Codec<List<A>> = this.listOrEle
  */
 fun <A> Codec<A>.listOrElement(min: Int, max: Int): Codec<List<A>> = RobustumCodecs.either(this.listOf(min, max), this).xmap(
     { either: Either<List<A>, A> -> either.map(::listOf).unwrap() },
-    { list: List<A> -> if (list.size == 1) Either.Right(list[0]) else Either.Left(list) },
+    { list: List<A> -> list.singleOrNull()?.right() ?: list.left() },
 )
 
 //    Set    //

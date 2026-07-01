@@ -11,7 +11,6 @@ import com.mojang.serialization.MapLike
 import com.mojang.serialization.RecordBuilder
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import dev.robustum.core.extensions.convert
-import dev.robustum.core.extensions.filterNot
 import dev.robustum.core.extensions.isSucceeded
 import dev.robustum.core.extensions.listOrElement
 import dev.robustum.core.extensions.toCodec
@@ -40,6 +39,7 @@ import net.minecraft.tag.ServerTagManagerHolder
 import net.minecraft.tag.Tag
 import net.minecraft.tag.TagGroup
 import net.minecraft.util.DyeColor
+import net.minecraft.util.Identifier
 import net.minecraft.util.registry.DefaultedRegistry
 import net.minecraft.util.registry.Registry
 import java.util.stream.Stream
@@ -327,6 +327,25 @@ data object RobustumCodecs {
         { it.some().filterNot(ItemStack::isEmpty) },
     )
 
+    //    Tag    //
+
+    @JvmStatic
+    fun <T : Any> hashedTag(group: () -> TagGroup<T>): Codec<Tag<T>> = Codec.STRING.flatXmap(
+        { value: String ->
+            if (value.startsWith("#")) {
+                Identifier.method_29186(value.removePrefix("#")).flatMap { id: Identifier ->
+                    group().getTag(id)?.let(DataResult<Tag<T>>::success) ?: DataResult.error("Unknown tag: $id")
+                }
+            } else {
+                DataResult.error("Not a tag id")
+            }
+        },
+        { tag: Tag<T> ->
+            val id: Identifier = group().getUncheckedTagId(tag) ?: return@flatXmap DataResult.error("Unknown tag: $tag")
+            DataResult.success("#$id")
+        },
+    )
+
     //    Ingredient    //
 
     /**
@@ -376,7 +395,11 @@ data object RobustumCodecs {
 
     @JvmField
     val NON_EMPTY_INGREDIENT: Codec<Ingredient> = INGREDIENT.validate { ingredient: Ingredient ->
-        DataResult.success(ingredient).filterNot(Ingredient::isEmpty, "Empty ingredient is not allowed!")
+        if (ingredient.isEmpty) {
+            DataResult.error("Empty ingredient is not allowed!")
+        } else {
+            DataResult.success(ingredient)
+        }
     }
 
     //    EntryOrTag    //
@@ -398,7 +421,7 @@ data object RobustumCodecs {
 
         @JvmStatic
         private fun <T : Any> create(registry: Registry<T>, group: () -> TagGroup<T>): Codec<RegistryEntryList<T>> =
-            either(registry.listOrElement(), Tag.codec(group))
+            either(registry.listOrElement(), hashedTag(group))
                 .xmap(
                     { either: Either<List<T>, Tag<T>> ->
                         either.fold(RegistryEntryList.Companion::direct, RegistryEntryList.Companion::tagged)
