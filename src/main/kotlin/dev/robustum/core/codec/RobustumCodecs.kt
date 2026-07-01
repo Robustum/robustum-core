@@ -314,7 +314,9 @@ data object RobustumCodecs {
                     .convert()
                     .forGetter { stack: ItemStack -> Option.fromNullable(stack.tag) },
             ).apply(instance) { item: Item, count: Int, nbt: Option<NbtCompound> ->
-                ItemStack(item, count).apply { nbt.onSome(this::setTag) }
+                val stack = ItemStack(item, count)
+                nbt.onSome(stack::setTag)
+                stack
             }
     }
 

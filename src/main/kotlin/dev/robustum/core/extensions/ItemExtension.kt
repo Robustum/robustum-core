@@ -20,8 +20,7 @@ fun ItemStack.isOf(item: ItemConvertible): Boolean = this.item == item.asItem()
 /**
  * この[ItemUsageContext]から[BlockState]を取得します。
  */
-val ItemUsageContext.blockState: BlockState
-    get() = world.getBlockState(blockPos)
+val ItemUsageContext.blockState: BlockState get() = world.getBlockState(blockPos)
 
 /**
  * この[ItemUsageContext]から[T]を取得します。
