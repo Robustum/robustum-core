@@ -7,7 +7,8 @@ import net.minecraft.nbt.NbtCompound
 import net.minecraft.nbt.NbtList
 import net.minecraft.nbt.NbtOps
 
-internal class NbtValueOutput(private val compoundTag: NbtCompound) : ValueOutput {
+@JvmRecord
+internal data class NbtValueOutput(private val compoundTag: NbtCompound) : ValueOutput {
     //    ValueOutput    //
 
     override fun <T : Any> write(key: String, codec: Codec<T>, value: T?) {
@@ -69,7 +70,8 @@ internal class NbtValueOutput(private val compoundTag: NbtCompound) : ValueOutpu
 
     //    ValueOutputList    //
 
-    private class ValueOutputList(private val list: NbtList) : ValueOutput.ValueOutputList {
+    @JvmRecord
+    private data class ValueOutputList(private val list: NbtList) : ValueOutput.ValueOutputList {
         override val isEmpty: Boolean get() = list.isEmpty()
 
         override fun addChild(): ValueOutput {
@@ -85,7 +87,8 @@ internal class NbtValueOutput(private val compoundTag: NbtCompound) : ValueOutpu
 
     //    TypedOutputList    //
 
-    private class TypedOutputList<T : Any>(private val list: NbtList, private val codec: Codec<T>) : ValueOutput.TypedOutputList<T> {
+    @JvmRecord
+    private data class TypedOutputList<T : Any>(private val list: NbtList, private val codec: Codec<T>) : ValueOutput.TypedOutputList<T> {
         override val isEmpty: Boolean get() = list.isEmpty()
 
         override fun add(element: T) {

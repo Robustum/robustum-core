@@ -13,7 +13,8 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import kotlin.jvm.optionals.getOrNull
 
-internal class JsonValueInput(private val jsonObject: JsonObject) : ValueInput {
+@JvmRecord
+internal data class JsonValueInput(private val jsonObject: JsonObject) : ValueInput {
     companion object {
         @JvmStatic
         private val LOGGER: Logger = LogManager.getLogger(JsonValueInput::class.java)
@@ -92,7 +93,8 @@ internal class JsonValueInput(private val jsonObject: JsonObject) : ValueInput {
 
     //    TypedInputList    //
 
-    private class TypedInputList<T : Any>(private val list: JsonArray, private val codec: Codec<T>) : Iterable<T> {
+    @JvmRecord
+    private data class TypedInputList<T : Any>(private val list: JsonArray, private val codec: Codec<T>) : Iterable<T> {
         override fun iterator(): Iterator<T> = list
             .mapNotNull { json: JsonElement ->
                 codec

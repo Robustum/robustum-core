@@ -7,7 +7,8 @@ import com.mojang.serialization.JsonOps
 import dev.robustum.core.extensions.onSucceeded
 import dev.robustum.core.serialization.ValueOutput
 
-internal class JsonValueOutput(private val jsonObject: JsonObject) : ValueOutput {
+@JvmRecord
+internal data class JsonValueOutput(private val jsonObject: JsonObject) : ValueOutput {
     //    HTValueOutput    //
 
     override fun <T : Any> write(key: String, codec: Codec<T>, value: T?) {
@@ -69,7 +70,8 @@ internal class JsonValueOutput(private val jsonObject: JsonObject) : ValueOutput
 
     //    ValueOutputList    //
 
-    private class ValueOutputList(private val list: JsonArray) : ValueOutput.ValueOutputList {
+    @JvmRecord
+    private data class ValueOutputList(private val list: JsonArray) : ValueOutput.ValueOutputList {
         override val isEmpty: Boolean get() = list.none()
 
         override fun addChild(): ValueOutput {
@@ -85,7 +87,8 @@ internal class JsonValueOutput(private val jsonObject: JsonObject) : ValueOutput
 
     //    TypedOutputList    //
 
-    private class TypedOutputList<T : Any>(private val list: JsonArray, private val codec: Codec<T>) : ValueOutput.TypedOutputList<T> {
+    @JvmRecord
+    private data class TypedOutputList<T : Any>(private val list: JsonArray, private val codec: Codec<T>) : ValueOutput.TypedOutputList<T> {
         override val isEmpty: Boolean get() = list.none()
 
         override fun add(element: T) {

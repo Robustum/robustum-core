@@ -15,7 +15,8 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import kotlin.jvm.optionals.getOrNull
 
-internal class NbtValueInput(private val compoundTag: NbtCompound) : ValueInput {
+@JvmRecord
+internal data class NbtValueInput(private val compoundTag: NbtCompound) : ValueInput {
     companion object {
         @JvmStatic
         private val LOGGER: Logger = LogManager.getLogger(NbtValueInput::class.java)
@@ -124,7 +125,8 @@ internal class NbtValueInput(private val compoundTag: NbtCompound) : ValueInput 
 
     //    TypedInputList    //
 
-    private class TypedInputList<T : Any>(private val list: NbtList, private val codec: Codec<T>) : Iterable<T> {
+    @JvmRecord
+    private data class TypedInputList<T : Any>(private val list: NbtList, private val codec: Codec<T>) : Iterable<T> {
         override fun iterator(): Iterator<T> = list
             .mapNotNull { nbt: NbtElement ->
                 codec

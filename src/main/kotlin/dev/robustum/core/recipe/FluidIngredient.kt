@@ -15,7 +15,8 @@ import java.util.function.BiPredicate
  * @param amount 必要な液体量
  */
 @Suppress("UnstableApiUsage")
-class FluidIngredient(val entryList: RegistryEntryList<Fluid>, val amount: Long = FluidConstants.BUCKET) : BiPredicate<Fluid, Long> {
+@JvmRecord
+data class FluidIngredient(val entryList: RegistryEntryList<Fluid>, val amount: Long = FluidConstants.BUCKET) : BiPredicate<Fluid, Long> {
     companion object {
         @JvmField
         val EMPTY = FluidIngredient(RegistryEntryList.empty(), 0)

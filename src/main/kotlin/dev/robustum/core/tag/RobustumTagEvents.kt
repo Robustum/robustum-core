@@ -14,7 +14,7 @@ import net.minecraft.util.registry.Registry
 import net.minecraft.util.registry.RegistryKey
 import java.util.function.BiConsumer
 
-object RobustumTagEvents {
+data object RobustumTagEvents {
     /**
      * 動的に[Tag]を登録するイベントです。
      *

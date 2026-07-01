@@ -3,7 +3,7 @@ package dev.robustum.core.serialization.impl
 import com.mojang.serialization.Codec
 import dev.robustum.core.serialization.ValueInput
 
-internal object EmptyValueInput : ValueInput {
+internal data object EmptyValueInput : ValueInput {
     override fun <T : Any> read(key: String, codec: Codec<T>): T? = null
 
     override fun child(key: String): ValueInput? = null

@@ -25,7 +25,7 @@ import kotlin.streams.asStream
 /**
  * [Text]の[Codec]を管理するクラスです。
  */
-object TextSerializerRegistry {
+data object TextSerializerRegistry {
     @JvmStatic
     private val classRegistry: MutableMap<Class<*>, Serializer<*>> = mutableMapOf()
 

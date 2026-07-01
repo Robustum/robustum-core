@@ -14,7 +14,8 @@ import java.util.function.Predicate
  * @param entryList 条件に一致するアイテムのリスト
  * @param count 必要な個数
  */
-class ItemIngredient(val entryList: RegistryEntryList<Item>, val count: Int = 1) : Predicate<ItemStack> {
+@JvmRecord
+data class ItemIngredient(val entryList: RegistryEntryList<Item>, val count: Int = 1) : Predicate<ItemStack> {
     companion object {
         @JvmField
         val EMPTY = ItemIngredient(RegistryEntryList.empty(), 0)

@@ -2,6 +2,8 @@
 
 package dev.robustum.core.util
 
+import dev.robustum.core.text.HasText
+import dev.robustum.core.text.toText
 import net.minecraft.text.Text
 import org.apache.logging.log4j.Logger
 import kotlin.contracts.ExperimentalContracts
@@ -48,6 +50,6 @@ fun <T> TextResult<T>.getOrThrow(): T = this.getOrElse { error(it.value) }
  * エラーメッセージのラッパークラスです。
  */
 @JvmInline
-value class ErrorText(val value: String) {
-    fun getText(): Text = Text.of(value)
+value class ErrorText(val value: String) : HasText {
+    override fun getText(): Text = value.toText()
 }
