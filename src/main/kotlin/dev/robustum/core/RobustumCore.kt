@@ -1,6 +1,5 @@
 package dev.robustum.core
 
-import dev.robustum.core.recipe.RobustumRecipeSerializers
 import net.fabricmc.api.ModInitializer
 import net.minecraft.util.Identifier
 import org.apache.logging.log4j.LogManager
@@ -16,8 +15,6 @@ object RobustumCore : ModInitializer {
     private val logger: Logger = LogManager.getLogger(RobustumCore::class.java)
 
     override fun onInitialize() {
-        RobustumRecipeSerializers.init()
-
         logger.info("Robustum Core is loaded!")
     }
 }
