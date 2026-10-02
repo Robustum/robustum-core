@@ -2,7 +2,7 @@
 kotlin = "2.4.20"
 ktlint = "1.3.0"
 minecraft = "1.16.5"
-fabric-loom = "1.17.20"
+fabric-loom = "1.18.2"
 fabric-loader = "0.19.5"
 fabric-api = "0.42.0+1.16"
 fabric-yarn = "1.16.5+build.10"
