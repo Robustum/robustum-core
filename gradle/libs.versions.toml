@@ -7,7 +7,7 @@ fabric-loader = "0.19.5"
 fabric-api = "0.42.0+1.16"
 fabric-yarn = "1.16.5+build.10"
 fabric-kotlin = "1.14.2+kotlin.2.4.21"
-asm = "9.10.1"
+asm = "9.11.1"
 kotest = "6.2.6"
 
 [libraries]
